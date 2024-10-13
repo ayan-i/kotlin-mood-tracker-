@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">mobile</string>
     <string name="button_text">Sign up</string>
+    <string name="arrow_back_content_desc">Go back</string>
 
 </resources>
 

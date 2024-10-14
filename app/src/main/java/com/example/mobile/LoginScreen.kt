@@ -35,6 +35,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 
 
@@ -49,7 +50,7 @@ fun LoginScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxHeight()
             .fillMaxWidth()
-            .background(color = Color.Black)
+            .background(color = Color.Black,contentScale = ContentScale.FillBounds)
     ) {
 
         Icon(

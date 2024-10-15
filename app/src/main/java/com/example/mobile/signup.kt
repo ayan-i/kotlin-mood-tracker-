@@ -67,6 +67,7 @@ fun SignUp(navController: NavController) {
                 .size(32.dp)
 
         )
+        //hello
 
         Text(
             text = "GET STARTED",

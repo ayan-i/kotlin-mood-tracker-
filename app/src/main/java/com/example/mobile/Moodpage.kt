@@ -41,7 +41,7 @@ fun MoodPage() {
     val dateFormat = DateFormat.getDateInstance().format(calendar)
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.White)
-
+    //hello
     Box(
         modifier = Modifier
             .fillMaxSize()

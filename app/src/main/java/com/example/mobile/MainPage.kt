@@ -1,3 +1,4 @@
+
 package com.example.mobile
 
 import android.os.Bundle
@@ -21,9 +22,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mobile.ui.theme.MobileTheme
 import androidx.compose.ui.res.colorResource
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun MainPage(navController: NavController) {
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(color = Color.Transparent)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,7 +49,7 @@ fun MainPage(navController: NavController) {
         Button(
             onClick = {navController.navigate(route="login_screen")},
             colors = ButtonDefaults.buttonColors(
-                    containerColor = colorResource(R.color.darkpurple),
+                containerColor = colorResource(R.color.darkpurple),
             ),
             modifier = Modifier
                 .fillMaxWidth(0.8f) // Set width to 80% of the parent
@@ -88,6 +92,7 @@ fun MainPagePreview() {
         MainPage(navController = rememberNavController())
     }
 }
+
 
 
 

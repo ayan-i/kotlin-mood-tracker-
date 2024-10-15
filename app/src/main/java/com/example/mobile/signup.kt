@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.Icon
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 @Composable
@@ -49,6 +50,8 @@ fun SignUp(navController: NavController) {
     var full_Name by remember { mutableStateOf(value = "") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(color = Color.Transparent)
     Box(
         modifier = Modifier
             .fillMaxHeight()
@@ -59,7 +62,7 @@ fun SignUp(navController: NavController) {
             imageVector = Icons.Rounded.ArrowBack,
             tint = Color.White,
             contentDescription = stringResource(id = R.string.arrow_back_content_desc),
-            modifier=Modifier.padding(top=30.dp,start=30.dp)
+            modifier=Modifier.padding(top=50.dp,start=20.dp)
                 .clickable { navController.navigate("main_page") }
                 .size(32.dp)
 

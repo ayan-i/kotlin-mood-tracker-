@@ -37,7 +37,7 @@ import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 @Composable
@@ -45,19 +45,19 @@ fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf(value = "") }
     var password by remember { mutableStateOf(value = "") }
     var showPassword by remember { mutableStateOf(value = false) }
-
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(color = Color.Transparent)
     Box(
         modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .background(color = Color.Black,contentScale = ContentScale.FillBounds)
+            .fillMaxSize()
+            .background(color = Color.Black)
     ) {
 
         Icon(
             imageVector =Icons.Rounded.ArrowBack,
             tint = Color.White,
             contentDescription = stringResource(id = R.string.arrow_back_content_desc),
-            modifier=Modifier.padding(top=30.dp,start=30.dp)
+            modifier=Modifier.padding(top=50.dp,start=20.dp)
                 .clickable { navController.navigate("main_page") }
                 .size(32.dp)
 

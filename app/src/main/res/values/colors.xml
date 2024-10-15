@@ -9,5 +9,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="lightpurple">#f0dcfc</color>
     <color name="darkpurple">#64548C</color>
+    <color name="lightblue">#589FF5</color>
+    <color name="yellow">#DAA521</color>
+    <color name="green">#61C52F</color>
+    <color name="orange">#DC602E</color>
+    <color name="red">#E73E3E</color>
 
 </resources>

@@ -24,6 +24,16 @@ import androidx.compose.ui.res.colorResource
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
+class MainPageActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+            MainPage(navController)
+        }
+    }
+}
 @Composable
 fun MainPage(navController: NavController) {
     //hello

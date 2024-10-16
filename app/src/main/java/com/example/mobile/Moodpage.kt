@@ -1,8 +1,11 @@
 package com.example.mobile
 
 import android.os.Bundle
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,24 +34,31 @@ import java.text.DateFormat
 import java.util.Calendar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.isSystemInDarkTheme
 
-
+class MyAppActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        setContent {
+            MoodPage()
+        }
+    }
+}
 @Composable
 fun MoodPage() {
     var selectedMood by remember { mutableStateOf("") }
     val calendar = Calendar.getInstance().time
     val dateFormat = DateFormat.getDateInstance().format(calendar)
     val systemUiController = rememberSystemUiController()
-    systemUiController.setSystemBarsColor(color = Color.White)
-    //hello
+    val isSelected = selectedMood == "Down"
+    systemUiController.setSystemBarsColor(color = Color.Transparent)
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color.Black)
             .padding(16.dp),
 
-    ) {
+        ) {
         Text(
             text = "How are you today?",
             color = Color.White,
@@ -60,15 +70,15 @@ fun MoodPage() {
             imageVector = Icons.Rounded.CalendarToday,
             tint = colorResource(R.color.darkpurple),
             contentDescription = "currentCalender",
-            modifier=Modifier
-                .padding(top=240.dp,start=110.dp)
+            modifier = Modifier
+                .padding(top = 240.dp, start = 110.dp)
 
         )
         Text(
             text = dateFormat,
             modifier = Modifier.padding(top = 240.dp, start = 140.dp),
             fontSize = 17.sp,
-            color=colorResource(R.color.lightpurple),
+            color = colorResource(R.color.lightpurple),
             fontWeight = FontWeight.SemiBold
         )
 
@@ -137,46 +147,67 @@ fun MoodPage() {
                     fontWeight = FontWeight.Bold,
                 )
             }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.sentiment_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24),
-                        contentDescription = "Bad",
-                        modifier = Modifier
-                            .size(68.dp)
-                            .clickable { selectedMood = "Bad" },
-                        colorFilter = ColorFilter.tint(colorResource(R.color.orange))
-                    )
-                    Text(
-                        text = "Bad",
-                        color = colorResource(R.color.orange),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.sentiment_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24),
+                    contentDescription = "Bad",
+                    modifier = Modifier
+                        .size(68.dp)
+                        .clickable { selectedMood = "Bad" },
+                    colorFilter = ColorFilter.tint(colorResource(R.color.orange))
+                )
+                Text(
+                    text = "Bad",
+                    color = colorResource(R.color.orange),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.sentiment_very_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24),
+                    contentDescription = "Down",
+                    modifier = Modifier
+                        .size(68.dp)
+                        .clickable { selectedMood = "Down" },
+                // should move on to anxiety page when clicked
+                    colorFilter = ColorFilter.tint(colorResource(R.color.red))
+                )
+                Text(
+                    text = "Down",
+                    color = colorResource(R.color.red),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
                 }
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.sentiment_very_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24),
-                        contentDescription = "Down",
-                        modifier = Modifier
-                            .size(68.dp)
-                            .clickable { selectedMood = "Down" },
-                        // should move on to anxiety page when clicked
-                        colorFilter = ColorFilter.tint(colorResource(R.color.red))
-                    )
-                    Text(
-                        text = "Down",
-                        color = colorResource(R.color.red),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
             }
         }
+
+    Button(
+        onClick = {},//could go to anxiety page??
+        //enabled = selectedMood.isNotEmpty()
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = colorResource(R.color.darkpurple)
+        ),
+        modifier = Modifier
+            .padding(top = 540.dp,start=120.dp)
+            .size(width = 150.dp, height = 40.dp)
+    ) {
+        Text(text = "Continue", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+    }
+    Text(
+        text= if (selectedMood.isNotEmpty())"$selectedMood is selected" else "",
+        color =  colorResource(R.color.lightpurple),
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        modifier = Modifier.padding(top=490.dp, start = 120.dp)
+    )
     }
 
 

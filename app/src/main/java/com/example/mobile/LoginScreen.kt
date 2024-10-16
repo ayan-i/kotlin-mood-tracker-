@@ -39,6 +39,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
+class LoginActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+            MainPage(navController)
+        }
+    }
+}
 
 @Composable
 fun LoginScreen(navController: NavController) {

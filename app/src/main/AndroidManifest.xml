@@ -16,7 +16,7 @@
             android:name=".MainActivity2"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".MyAppActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Mobile">

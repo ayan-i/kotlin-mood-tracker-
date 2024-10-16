@@ -39,7 +39,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
-
+class SignUpActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+            SignUp(navController)
+        }
+    }
+}
 @Composable
 fun SignUp(navController: NavController) {
     var checked by remember { mutableStateOf(true) }
@@ -64,7 +73,7 @@ fun SignUp(navController: NavController) {
             contentDescription = stringResource(id = R.string.arrow_back_content_desc),
             modifier=Modifier.padding(top=50.dp,start=20.dp)
                 .clickable { navController.navigate("main_page") }
-                .size(32.dp)
+                .size(37.dp)
 
         )
         //hello

@@ -50,7 +50,6 @@ fun MoodPage() {
     val calendar = Calendar.getInstance().time
     val dateFormat = DateFormat.getDateInstance().format(calendar)
     val systemUiController = rememberSystemUiController()
-    val isSelected = selectedMood == "Down"
     systemUiController.setSystemBarsColor(color = Color.Transparent)
     Box(
         modifier = Modifier

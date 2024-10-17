@@ -76,8 +76,8 @@ fun MoodPage() {
         )
         Text(
             text = dateFormat,
-            modifier = Modifier.padding(top = 240.dp, start = 140.dp),
-            fontSize = 17.sp,
+            modifier = Modifier.padding(top = 242.dp, start = 140.dp),
+            fontSize = 19.sp,
             color = colorResource(R.color.lightpurple),
             fontWeight = FontWeight.SemiBold
         )
@@ -202,11 +202,11 @@ fun MoodPage() {
         Text(text = "Continue", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
     }
     Text(
-        text= if (selectedMood.isNotEmpty())"$selectedMood is selected" else "",
+        text= if (selectedMood.isNotEmpty())"$selectedMood" else "",
         color =  colorResource(R.color.lightpurple),
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        modifier = Modifier.padding(top=490.dp, start = 120.dp)
+        modifier = Modifier.padding(top=490.dp, start = 170.dp)
     )
     }
 

@@ -190,7 +190,10 @@ fun MoodPage() {
 
     Button(
         onClick = {},//could go to anxiety page??
-        //enabled = selectedMood.isNotEmpty()
+        //when they press continue thats when they should store the current
+        // selected mood
+        //maybe do currentMood=selectedmood and then navcontroller next page??
+        //figure out how the database stuff works
         colors = ButtonDefaults.buttonColors(
             backgroundColor = colorResource(R.color.darkpurple)
         ),
@@ -205,7 +208,7 @@ fun MoodPage() {
         color =  colorResource(R.color.lightpurple),
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        modifier = Modifier.padding(top=490.dp, start = 170.dp)
+        modifier = Modifier.padding(top=490.dp, start = 160.dp)
     )
     }
 

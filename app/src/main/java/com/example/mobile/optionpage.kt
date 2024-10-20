@@ -1,6 +1,8 @@
 package com.example.mobile
 
+
 import android.os.Bundle
+import android.provider.ContactsContract.Profile
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.activity.ComponentActivity
@@ -9,14 +11,19 @@ import androidx.compose.material3.Card
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Medication
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
@@ -65,6 +72,8 @@ fun Option() {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent)
     var checked by remember { mutableStateOf(false) }
+    var selectedItem by remember { mutableStateOf("Overview") }
+    // research into selected .... look at android website
 
     Box(
         modifier = Modifier
@@ -123,9 +132,55 @@ fun Option() {
             }
         }
     }
+    BottomNavigation(
+        backgroundColor = colorResource(R.color.lightpurple),
+        contentColor = Color.Black,
+        modifier = Modifier.padding(top = 810.dp)
+            .fillMaxWidth()
+            .height(80.dp)
+
+    ) {
+        BottomNavigationItem(
+            selected = false,
+            onClick = {  },
+            icon = { Icon(Icons.Filled.ShowChart, contentDescription = null,
+                modifier = Modifier.size(45.dp).padding(top = 10.dp)) },
+            label = { Text("Overview") }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = {  },
+            icon = { Icon(Icons.Filled.History, contentDescription = null,
+                modifier = Modifier.size(45.dp) .padding(top = 10.dp)) },
+            label = { Text("History") }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = {  },
+            icon = { Icon(Icons.Filled.AddCircleOutline, contentDescription = null,
+                modifier = Modifier.size(60.dp) .padding(top = 10.dp)) },
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = {  },
+            icon = { Icon(Icons.Filled.Medication, contentDescription = null,
+                modifier = Modifier.size(45.dp) .padding(top = 10.dp)) },
+            label = { Text("Med") }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = {  },
+            icon = { Icon(Icons.Filled.Person, contentDescription = null,
+                modifier = Modifier.size(45.dp) .padding(top = 10.dp)) },
+            label = { Text("Profile") }
+
+        )
+    }
 }
 
-// do the bottom navigation bar design
+
+
+    // do the bottom navigation bar design
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun option2() {

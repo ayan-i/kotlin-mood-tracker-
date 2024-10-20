@@ -65,6 +65,9 @@ class optionActivity : ComponentActivity() {
 //for example the add sign would go to mood page
 //medication icon link to zainabs page
 // setting page to change reminders and what not?
+//BOTTOM Navigation Bar done
+//Need to generate history by doing the database
+// mood & anxiety from database work on login database table and emoji table
 
 
 @Composable
@@ -145,14 +148,16 @@ fun Option() {
             onClick = {  },
             icon = { Icon(Icons.Filled.ShowChart, contentDescription = null,
                 modifier = Modifier.size(45.dp).padding(top = 10.dp)) },
-            label = { Text("Overview") }
+            label = { Text("Overview",fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp) }
         )
         BottomNavigationItem(
             selected = false,
             onClick = {  },
             icon = { Icon(Icons.Filled.History, contentDescription = null,
                 modifier = Modifier.size(45.dp) .padding(top = 10.dp)) },
-            label = { Text("History") }
+            label = { Text("History",
+                fontSize = 16.sp) }
         )
         BottomNavigationItem(
             selected = false,
@@ -165,14 +170,16 @@ fun Option() {
             onClick = {  },
             icon = { Icon(Icons.Filled.Medication, contentDescription = null,
                 modifier = Modifier.size(45.dp) .padding(top = 10.dp)) },
-            label = { Text("Med") }
+            label = { Text("Med",fontSize = 16.sp,
+                ) }
         )
         BottomNavigationItem(
             selected = false,
             onClick = {  },
             icon = { Icon(Icons.Filled.Person, contentDescription = null,
                 modifier = Modifier.size(45.dp) .padding(top = 10.dp)) },
-            label = { Text("Profile") }
+            label = { Text("Profile",
+                fontSize = 16.sp) }
 
         )
     }

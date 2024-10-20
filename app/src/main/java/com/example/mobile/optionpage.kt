@@ -77,6 +77,8 @@ fun Option() {
     var checked by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf("Overview") }
     // research into selected .... look at android website
+    //for selected it would highlight the icon when pressed
+    //find out how to make it scrollable dynamically
 
     Box(
         modifier = Modifier

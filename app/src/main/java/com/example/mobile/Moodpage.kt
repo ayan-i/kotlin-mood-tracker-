@@ -46,11 +46,13 @@ class MyAppActivity : ComponentActivity() {
 }
 @Composable
 fun MoodPage() {
+
     var selectedMood by remember { mutableStateOf("") }
     val calendar = Calendar.getInstance().time
     val dateFormat = DateFormat.getDateInstance().format(calendar)
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent)
+    //make a function to take in from the database research???
     Box(
         modifier = Modifier
             .fillMaxSize()

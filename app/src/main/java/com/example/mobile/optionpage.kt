@@ -24,8 +24,6 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShowChart
-import androidx.compose.material3.CardElevation
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -37,7 +35,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.mobile.ui.theme.MobileTheme
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
@@ -79,7 +76,7 @@ fun Option() {
     // research into selected .... look at android website
     //for selected it would highlight the icon when pressed
     //find out how to make it scrollable dynamically
-
+    //make it into seperate functions make
     Box(
         modifier = Modifier
             .fillMaxSize()

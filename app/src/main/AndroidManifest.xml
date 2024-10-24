@@ -16,6 +16,12 @@
             android:name=".MainActivity"
             android:exported="true" />
         <activity
+            android:name=".MyApp"
+            android:exported="true" />
+        <activity
+            android:name=".MainPageActivity"
+            android:exported="true" />
+        <activity
             android:name=".MyAppActivity"
             android:exported="true" />
         <activity

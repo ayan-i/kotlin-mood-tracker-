@@ -16,7 +16,13 @@
             android:name=".MainActivity"
             android:exported="true" />
         <activity
+            android:name=".OverviewActivity"
+            android:exported="true" />
+        <activity
             android:name=".MyApp"
+            android:exported="true" />
+        <activity
+            android:name=".dateActivity"
             android:exported="true" />
         <activity
             android:name=".MainPageActivity"

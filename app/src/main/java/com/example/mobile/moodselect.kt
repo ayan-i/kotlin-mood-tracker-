@@ -1,7 +1,9 @@
 package com.example.mobile
 
 
+import android.content.Context
 import android.os.Bundle
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.activity.ComponentActivity
@@ -13,7 +15,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,17 +25,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 import com.example.mobile.ui.theme.MobileTheme
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import java.text.DateFormat
 import java.util.Calendar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.runtime.Composable
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import android.widget.Toast
+import java.io.IOException
 
 class MyApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,19 +50,20 @@ class MyApp : ComponentActivity() {
 @Composable
 fun Mood() {
 
-    data class Mood(val Moodname: String, val MoodEmoji: Int,val color:Color)
+    data class mood(val id: Int,val Moodname: String, val MoodEmoji: Int,val color:Color)
     var selectedMood by remember { mutableStateOf("") }
+    val context = LocalContext.current
     val calendar = Calendar.getInstance().time
     val dateFormat = DateFormat.getDateInstance().format(calendar)
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent)
 
     val moods = listOf(
-        Mood("Joyful", R.drawable.veryhappy,colorResource(R.color.lightblue)),
-        Mood("Happy", R.drawable.sentiment_satisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.green)),
-        Mood("Meh", R.drawable.neutral,colorResource(R.color.yellow)),
-        Mood("Bad", R.drawable.sentiment_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.orange)),
-        Mood("Down", R.drawable.sentiment_very_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.red))
+        mood(1,"Joyful", R.drawable.veryhappy,colorResource(R.color.lightblue)),
+        mood(2,"Happy", R.drawable.sentiment_satisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.green)),
+        mood(3,"Meh", R.drawable.neutral,colorResource(R.color.yellow)),
+        mood(4,"Bad", R.drawable.sentiment_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.orange)),
+        mood(5,"Down", R.drawable.sentiment_very_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.red))
     )
 
     Box(
@@ -118,12 +121,24 @@ fun Mood() {
             }
         }
         Button(
-            onClick = {},
+            onClick = {try {
+                val fos: FileOutputStream =
+                    context.openFileOutput("Mood.txt", Context.MODE_APPEND)
+                val entry = "Date: $dateFormat,Mood:$selectedMood\n"
+                fos.write(entry .toByteArray())
+                fos.flush()
+                fos.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+                Toast.makeText(context, "Data saved successfully..", Toast.LENGTH_SHORT).show()
+
+            },
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = colorResource(R.color.darkpurple)
             ),
             modifier = Modifier
-                .padding(top = 540.dp, start = 120.dp)
+                .padding(top = 520.dp, start = 120.dp)
                 .size(width = 150.dp, height = 40.dp)
         ) {
             Text(
@@ -138,7 +153,7 @@ fun Mood() {
             color = colorResource(R.color.lightpurple),
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
-            modifier = Modifier.padding(top = 490.dp, start = 160.dp)
+            modifier = Modifier.padding(top = 470.dp, start = 160.dp)
         )
     }
 }

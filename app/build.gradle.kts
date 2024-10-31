@@ -1,8 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt")
+
     alias(libs.plugins.kotlin.compose)
 }
+
 
 android {
     namespace = "com.example.mobile"
@@ -47,6 +50,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
+    implementation ("androidx.room:room-runtime:2.5.2")
+    annotationProcessor ("androidx.room:room-compiler:2.5.2")
     implementation("androidx.compose.material:material:1.7.3")
     implementation("androidx.compose.material:material-icons-core:1.7.3")
     implementation("androidx.compose.material:material-icons-extended:1.7.3")
@@ -55,6 +60,9 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.7.3")
     implementation ("androidx.navigation:navigation-compose:2.5.3")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+    implementation ("androidx.room:room-runtime:2.5.0")
+    kapt ("androidx.room:room-compiler:2.5.0")
+    implementation ("androidx.room:room-ktx:2.5.0")
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.appcompat)

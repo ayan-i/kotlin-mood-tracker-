@@ -67,15 +67,6 @@ fun SignUp(navController: NavController) {
             .fillMaxWidth()
             .background(color = Color.Black)
     ) {
-        Icon(
-            imageVector = Icons.Rounded.ArrowBack,
-            tint = Color.White,
-            contentDescription = stringResource(id = R.string.arrow_back_content_desc),
-            modifier=Modifier.padding(top=50.dp,start=20.dp)
-                .clickable { navController.navigate("main_page") }
-                .size(37.dp)
-
-        )
         //hello
 
         Text(

@@ -37,6 +37,9 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import android.widget.Toast
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MyApp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,20 +53,22 @@ class MyApp : ComponentActivity() {
 @Composable
 fun Mood() {
 
-    data class mood(val id: Int,val Moodname: String, val MoodEmoji: Int,val color:Color)
+    data class Mood(val id: Int,val Moodname: String, val MoodEmoji: Int,val color:Color)
     var selectedMood by remember { mutableStateOf("") }
     val context = LocalContext.current
     val calendar = Calendar.getInstance().time
     val dateFormat = DateFormat.getDateInstance().format(calendar)
+    val dateFormat2 = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    val currentDateTime = dateFormat2.format(Date())
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent)
 
     val moods = listOf(
-        mood(1,"Joyful", R.drawable.veryhappy,colorResource(R.color.lightblue)),
-        mood(2,"Happy", R.drawable.sentiment_satisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.green)),
-        mood(3,"Meh", R.drawable.neutral,colorResource(R.color.yellow)),
-        mood(4,"Bad", R.drawable.sentiment_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.orange)),
-        mood(5,"Down", R.drawable.sentiment_very_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.red))
+        Mood(1,"Joyful", R.drawable.veryhappy,colorResource(R.color.lightblue)),
+        Mood(2,"Happy", R.drawable.sentiment_satisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.green)),
+        Mood(3,"Meh", R.drawable.neutral,colorResource(R.color.yellow)),
+        Mood(4,"Bad", R.drawable.sentiment_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.orange)),
+        Mood(5,"Down", R.drawable.sentiment_very_dissatisfied_24dp_b89230_fill0_wght400_grad0_opsz24,colorResource(R.color.red))
     )
 
     Box(
@@ -123,8 +128,8 @@ fun Mood() {
         Button(
             onClick = {try {
                 val fos: FileOutputStream =
-                    context.openFileOutput("Mood.txt", Context.MODE_APPEND)
-                val entry = "Date: $dateFormat,Mood:$selectedMood\n"
+                    context.openFileOutput("mood1.txt", Context.MODE_APPEND)
+                val entry = "$currentDateTime,$selectedMood\n"
                 fos.write(entry .toByteArray())
                 fos.flush()
                 fos.close()

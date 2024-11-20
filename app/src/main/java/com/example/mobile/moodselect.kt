@@ -36,6 +36,8 @@ import androidx.compose.runtime.Composable
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import android.widget.Toast
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -46,16 +48,19 @@ class MyApp : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            Mood()
+            val navController = rememberNavController()
+            Mood(navController)
         }
     }
 }
 @Composable
-fun Mood() {
+fun Mood(navController: NavController) {
 
     data class Mood(val id: Int,val Moodname: String, val MoodEmoji: Int,val color:Color)
     var selectedMood by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    val userId = sharedPreferences.getString("userId", null)
     val calendar = Calendar.getInstance().time
     val dateFormat = DateFormat.getDateInstance().format(calendar)
     val dateFormat2 = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -128,8 +133,8 @@ fun Mood() {
         Button(
             onClick = {try {
                 val fos: FileOutputStream =
-                    context.openFileOutput("mood1.txt", Context.MODE_APPEND)
-                val entry = "$currentDateTime,$selectedMood\n"
+                    context.openFileOutput("moodSELECT.txt", Context.MODE_APPEND)
+                val entry = "$userId,$currentDateTime,$selectedMood\n"
                 fos.write(entry .toByteArray())
                 fos.flush()
                 fos.close()
@@ -168,6 +173,8 @@ fun Mood() {
 @Composable
 fun PreviewMoodPage2() {
     MobileTheme {
-        Mood()
+        val navController = rememberNavController() // Mock navigation controller for preview
+        Mood(navController = navController)
+
     }
 }

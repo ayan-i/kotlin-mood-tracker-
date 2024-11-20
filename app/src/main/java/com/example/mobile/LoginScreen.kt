@@ -1,6 +1,8 @@
 package com.example.mobile
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material.Button
@@ -9,6 +11,8 @@ import androidx.compose.material.TextField
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -38,6 +42,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.io.FileInputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,8 +58,41 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
+fun saveUserIdToPreferences(context: Context, userId: String) {
+    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    sharedPreferences.edit().putString("userId", userId).apply()
+}
+
+fun login(context: Context, inputUsername: String, inputPassword: String): String? {
+    return try {
+        val fileInputStream: FileInputStream = context.openFileInput("login.txt")
+        val lines = fileInputStream.bufferedReader().readLines()
+
+        for (line in lines) {
+            val parts = line.split(",")
+            if (parts.size >= 4) {
+                val userId = parts[0].trim()
+                val username = parts[2].trim()
+                val password = parts[3].trim()
+
+                // Check if credentials match
+                if (username == inputUsername && password == inputPassword) {
+                    UserSession.userId = userId // Save to UserSession
+                    return userId // Return userId on success
+                }
+            }
+        }
+        null // Return null if login fails
+    } catch (e: IOException) {
+        Log.e("Login", "Error reading login.txt file", e)
+        null
+    }
+}
+
+
 @Composable
 fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
     var username by remember { mutableStateOf(value = "") }
     var password by remember { mutableStateOf(value = "") }
     var showPassword by remember { mutableStateOf(value = false) }
@@ -62,9 +103,6 @@ fun LoginScreen(navController: NavController) {
             .fillMaxSize()
             .background(color = Color.Black)
     ) {
-
-
-
 
 
         Text(
@@ -126,17 +164,24 @@ fun LoginScreen(navController: NavController) {
 
 
         Button(
-            //come back to this add xml layout folder and activity_layout file
-            // this is what you should write
-            onClick = {},
+            onClick = {
+                val userId = login(context,username,password)
+                if (userId != null) {
+                    Toast.makeText(context,"Login successful!",Toast.LENGTH_SHORT).show()
+                    saveUserIdToPreferences(context, userId) // Save userId in SharedPreferences
+                    navController.navigate("overview_screen")
+                } else {
+                    Toast.makeText(context, "Invalid username or password", Toast.LENGTH_SHORT).show()
+                }
+            },
             colors = ButtonDefaults.buttonColors(
-                backgroundColor = colorResource(R.color.darkpurple)),
-
-            modifier = Modifier.padding(top = 430.dp, start = 100.dp)
+                backgroundColor = colorResource(R.color.darkpurple)
+            ),
+            modifier = Modifier
+                .padding(top = 430.dp, start = 100.dp)
                 .size(width = 200.dp, height = 45.dp),
         ) {
             Text(text = "Login", color = Color.White, fontSize = 22.sp)
-
         }
     }
 }      //add checkbox right next to the terms & conditions

@@ -1,8 +1,10 @@
 package com.example.mobile // Make sure to include your package name
 
+import android.content.Context
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import android.os.Bundle
+import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material.*
@@ -12,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import java.util.UUID
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,9 +38,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.Icon
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.io.FileOutputStream
+import java.io.IOException
 
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +57,8 @@ class SignUpActivity : ComponentActivity() {
 }
 @Composable
 fun SignUp(navController: NavController) {
+    var selectedMood by remember { mutableStateOf("") }
+    val context = LocalContext.current
     var checked by remember { mutableStateOf(true) }
     var password by remember { mutableStateOf(value = "") }
     var username by remember { mutableStateOf(value = "") }
@@ -217,7 +225,20 @@ fun SignUp(navController: NavController) {
             )
             //add checkbox next to terms and conditions
             Button(
-                onClick = {},
+                onClick = {try {
+                    val userId = UUID.randomUUID().toString()
+                    val fos: FileOutputStream =
+                        context.openFileOutput("login.txt", Context.MODE_APPEND)
+                    val entry = "$userId,$email,$username,$password\n"
+                    fos.write(entry .toByteArray())
+                    fos.flush()
+                    fos.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+                    Toast.makeText(context, "Data saved successfully..", Toast.LENGTH_SHORT).show()
+
+                },
                 //should lead to reminder and goal page
                 //navController.navigate("goal_page")
                 //navController.navigate("
@@ -234,7 +255,6 @@ fun SignUp(navController: NavController) {
         }
 }      //add checkbox right next to the terms & conditions
 // color = colorResource(R.color.darkpurple),
-
 
 
 @Preview(showBackground = true, showSystemUi = true)

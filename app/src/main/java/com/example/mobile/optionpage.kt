@@ -36,11 +36,15 @@ import android.util.Log
 import androidx.compose.ui.draw.shadow
 import java.io.FileInputStream
 import androidx.compose.animation.animateContentSize
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+
 class OptionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Option()
+            val navController = rememberNavController()
+            Option(navController)
         }
     }
 }
@@ -48,19 +52,19 @@ class OptionActivity : ComponentActivity() {
 data class MoodEntry(val date: String, val mood: String)
 
 
-fun readMoodHistory(context: Context): List<MoodEntry> {
+fun readMoodHistory(context: Context,userId:String): List<MoodEntry> {
     return try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val outputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault())
 
-        val fileInputStream: FileInputStream = context.openFileInput("mood1.txt")
+        val fileInputStream: FileInputStream = context.openFileInput("moodSELECT.txt")
         val lines = fileInputStream.bufferedReader().readLines()
 
         lines.mapNotNull { line ->
             val parts = line.split(",")
-            if (parts.size == 2) {
-                val stored_date = parts[0].trim()
-                val mood = parts[1].trim()
+            if (parts.size == 3 && parts[0] == userId) {
+                val stored_date = parts[1].trim()
+                val mood = parts[2].trim()
                 val date = inputFormat.parse(stored_date)
                 val formattedDate = if (date != null) outputFormat.format(date) else stored_date
 
@@ -78,20 +82,26 @@ fun readMoodHistory(context: Context): List<MoodEntry> {
 
 
 @Composable
-fun Option() {
+fun Option(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.Black)
     systemUiController.setNavigationBarColor(colorResource(R.color.lightpurple))
-
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    val userId = sharedPreferences.getString("userId", null) // Safely retrieve userId
     var moodHistory by remember { mutableStateOf<List<MoodEntry>>(emptyList()) }
 
     //doesn't delay the UI and runs it seperately not in the main thread
     LaunchedEffect(context) {
-        moodHistory = readMoodHistory(context)
-        Log.d("MoodHistory", "Loaded entries: ${moodHistory.size}")
-
+        if (!userId.isNullOrEmpty()) {
+            Log.d("UserId", "Retrieved userId: $userId")
+            moodHistory = readMoodHistory(context, userId)
+            Log.d("MoodHistory", "Loaded entries: ${moodHistory.size}")
+        } else {
+            Log.e("MoodHistory", "Error: User ID is null or empty")
+        }
     }
+
     if (moodHistory.isEmpty()) {
         Text("No mood history available", color = Color.White)
     }
@@ -133,7 +143,7 @@ fun Option() {
         ) {
             BottomNavigationItem(
                 selected = false ,
-                onClick = {},
+                onClick = {navController.navigate("overview_screen")},
                 icon = {
                     Icon(
                         Icons.AutoMirrored.Filled.ShowChart,
@@ -145,7 +155,7 @@ fun Option() {
             )
             BottomNavigationItem(
                 selected = false,
-                onClick = { },
+                onClick = { navController.navigate("history_screen")},
                 icon = {
                     Icon(
                         Icons.Filled.History,
@@ -157,7 +167,7 @@ fun Option() {
             )
             BottomNavigationItem(
                 selected = false,
-                onClick = { /* Handle navigation */ },
+                onClick = { navController.navigate("mood_screen") },
                 icon = {
                     Icon(
                         Icons.Filled.AddCircleOutline,
@@ -183,12 +193,12 @@ fun Option() {
                 onClick = { /* Handle navigation */ },
                 icon = {
                     Icon(
-                        Icons.Filled.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(50.dp).padding(top = 10.dp)
-                    )
+                    imageVector = Icons.Default.Phone,
+                    contentDescription = "Help",
+                    modifier = Modifier.size(20.dp)
+                )
                 },
-                label = { Text("Profile", fontSize = 16.sp) }
+                label = { Text("Support", fontSize = 11.sp) }
             )
         }
     }

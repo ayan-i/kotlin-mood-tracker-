@@ -16,10 +16,13 @@
             android:name=".MainActivity"
             android:exported="true" />
         <activity
-            android:name=".OverviewActivity"
+            android:name=".SignUpActivity"
             android:exported="true" />
         <activity
             android:name=".MyApp"
+            android:exported="true" />
+        <activity
+            android:name=".overviewActivity"
             android:exported="true" />
         <activity
             android:name=".OptionActivity"

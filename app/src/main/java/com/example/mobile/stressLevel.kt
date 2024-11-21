@@ -1,4 +1,4 @@
-package com.example.mob
+package com.example.mobile
 
 import android.content.Context
 import android.os.Bundle

@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
                 val sharedPreferences = getSharedPreferences("user_session", Context.MODE_PRIVATE)
                 val userId = sharedPreferences.getString("userId", null)
 
-                // Determine start destination
                 val startDestination = if (userId != null) "overview_screen" else "main_page"
                 Log.d("MainActivity", "Starting app with userId: $userId")
                 Log.d("MainActivity", "Start destination: $startDestination")
@@ -32,6 +31,7 @@ class MainActivity : ComponentActivity() {
                     composable("overview_screen") { overview(navController) }
                     composable("mood_screen") { Mood(navController) }
                     composable("history_screen") { Option(navController) }
+                    composable("advice_screen"){HelpLine(navController)}
                 }
             }
         }

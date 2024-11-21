@@ -178,7 +178,7 @@ fun Option(navController: NavController) {
             )
             BottomNavigationItem(
                 selected = false,
-                onClick = { /* Handle navigation */ },
+                onClick = { navController.navigate(route="advice_screen") },
                 icon = {
                     Icon(
                         Icons.Filled.Medication,
@@ -190,7 +190,7 @@ fun Option(navController: NavController) {
             )
             BottomNavigationItem(
                 selected = false,
-                onClick = { /* Handle navigation */ },
+                onClick = {navController.navigate(route="advice_screen") },
                 icon = {
                     Icon(
                     imageVector = Icons.Default.Phone,

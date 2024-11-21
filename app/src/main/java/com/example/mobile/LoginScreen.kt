@@ -82,7 +82,7 @@ fun login(context: Context, inputUsername: String, inputPassword: String): Strin
                 }
             }
         }
-        null // Return null if login fails
+        null
     } catch (e: IOException) {
         Log.e("Login", "Error reading login.txt file", e)
         null

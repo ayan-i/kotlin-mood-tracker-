@@ -16,6 +16,12 @@
             android:name=".MainActivity"
             android:exported="true" />
         <activity
+            android:name=".AnxietyActivity"
+            android:exported="true" />
+        <activity
+            android:name=".stressLevel"
+            android:exported="true" />
+        <activity
             android:name=".SignUpActivity"
             android:exported="true" />
         <activity

@@ -63,6 +63,7 @@ fun HelpLine(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth() // Ensures the image spans the entire width
                 .height(130.dp)
+
         )
 
         // Apply padding to the rest of the content

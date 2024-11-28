@@ -163,38 +163,48 @@ fun mergeEntries(
     stressEntries: List<StressEntry>,
     anxietyEntries: List<AnxietyEntry>
 ): List<CombinedEntry> {
-    val inputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault())
-    val dateOnlyFormat = SimpleDateFormat("EEEE MMM d", Locale.getDefault())
+    val inputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault()) // Matches the actual format
+    val dateOnlyFormat = SimpleDateFormat("EEEE MMM d", Locale.getDefault()) // To extract only the date
+
+    // Group mood entries by day
+    val moodsGroupedByDay = moodEntries.groupBy {
+        inputFormat.parse(it.date)?.let { date -> dateOnlyFormat.format(date) }
+    }
 
     val mergedList = mutableListOf<CombinedEntry>()
 
-    for (mood in moodEntries) {
-        //loops through the mood entries
-        val moodDateFull = inputFormat.parse(mood.date) // Full date with time
-        val moodDateOnly = moodDateFull?.let { dateOnlyFormat.format(it) } // Extract only the date
+    for ((day, moods) in moodsGroupedByDay) {
+        if (day != null) {
+            // Find the last mood entry for the day
+            val lastMood = moods.maxByOrNull { inputFormat.parse(it.date)?.time ?: 0L }
 
-        val stressMatch = stressEntries.find {
-            val stressDateFull = inputFormat.parse(it.date)
-            val stressDateOnly = stressDateFull?.let { dateOnlyFormat.format(it) }
-            stressDateOnly == moodDateOnly
+            // Find matching stress and anxiety for the day
+            val stressMatch = stressEntries.find {
+                val stressDate = inputFormat.parse(it.date)
+                val stressDateOnly = stressDate?.let { dateOnlyFormat.format(it) }
+                stressDateOnly == day
+            }
+
+            val anxietyMatch = anxietyEntries.find {
+                val anxietyDate = inputFormat.parse(it.date)
+                val anxietyDateOnly = anxietyDate?.let { dateOnlyFormat.format(it) }
+                anxietyDateOnly == day
+            }
+
+            // Add all moods for the day, ensuring stress/anxiety only on the last one
+            moods.forEach { mood ->
+                mergedList.add(
+                    CombinedEntry(
+                        date = mood.date,
+                        mood = mood.mood,
+                        stressLevel = if (mood == lastMood) stressMatch?.stressLevel else null,
+                        stressNotes = if (mood == lastMood) stressMatch?.Notes else null,
+                        anxietyLevel = if (mood == lastMood) anxietyMatch?.anxietyLevel else null,
+                        anxietyNotes = if (mood == lastMood) anxietyMatch?.Notes else null
+                    )
+                )
+            }
         }
-
-        val anxietyMatch = anxietyEntries.find {
-            val anxietyDateFull = inputFormat.parse(it.date)
-            val anxietyDateOnly = anxietyDateFull?.let { dateOnlyFormat.format(it) }
-            anxietyDateOnly == moodDateOnly
-        }
-
-        mergedList.add(
-            CombinedEntry(
-                date = mood.date,
-                mood = mood.mood,
-                stressLevel = stressMatch?.stressLevel,
-                stressNotes = stressMatch?.Notes,
-                anxietyLevel = anxietyMatch?.anxietyLevel,
-                anxietyNotes = anxietyMatch?.Notes
-            )
-        )
     }
 
     return mergedList

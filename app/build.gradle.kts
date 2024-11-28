@@ -80,3 +80,37 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+dependencies {
+    // Compose BOM (Bill of Materials)
+    implementation ("androidx.compose:compose-bom:2024.02.00")
+
+    // Material 3 Design
+    implementation ("androidx.compose.material3:material3")
+
+    // Compose UI and Preview
+    implementation ("androidx.compose.ui:ui")
+    implementation ("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation ("androidx.compose.ui:ui-tooling")
+
+    // Navigation for Compose
+    implementation ("androidx.navigation:navigation-compose:2.7.2")
+
+    // Core Compose dependencies
+    implementation ("androidx.activity:activity-compose:1.7.2")
+
+    // Kotlin coroutine support for Compose
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    implementation("androidx.compose.material3:material3:1.1.1")
+    implementation("androidx.activity:activity-compose:1.7.2")
+    implementation("androidx.navigation:navigation-compose:2.7.2")
+
+}
+
+dependencies {
+    implementation("androidx.compose.ui:ui-tooling-preview:1.5.1")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.5.1")
+}
+
+
+

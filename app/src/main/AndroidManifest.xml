@@ -19,8 +19,14 @@
             android:name=".AnxietyActivity"
             android:exported="true" />
         <activity
-            android:name=".stressLevel"
-            android:exported="true" />
+            android:name=".StressLevel"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".SignUpActivity"
             android:exported="true" />
@@ -45,6 +51,8 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
+
             </intent-filter>
         </activity>
     </application>

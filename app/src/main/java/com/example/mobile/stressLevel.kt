@@ -19,70 +19,59 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.core.view.WindowCompat
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.mobile.ui.theme.MobileTheme
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.tooling.preview.Preview
 
-class stressLevel : ComponentActivity() {
+
+class StressLevel : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Enable edge-to-edge display
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
         setContent {
             MobileTheme {
-                StressLevelContent(
-                    onSubmit = { level, notes ->
-                        saveData(level, notes)
-                    }
-                )
+                val navController = rememberNavController() // Create a NavController instance
+                StressScreen(navController = navController) // Pass the NavController instance here
             }
-        }
-    }
-
-    private fun saveData(level: String, notes: String) {
-        val filename = "stress_history.txt"
-        val currentTime = System.currentTimeMillis()
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val formattedDate = dateFormat.format(Date(currentTime))
-        val fileContent = """
-            Date: $formattedDate
-            Level: $level
-            Notes: $notes
-
-        """.trimIndent()
-
-        try {
-            openFileOutput(filename, Context.MODE_APPEND).use { output ->
-                output.write(fileContent.toByteArray())
-            }
-            Log.d("FileSave", "Data saved to internal storage in $filename")
-        } catch (e: IOException) {
-            Log.e("FileSaveError", "Failed to save data to file", e)
         }
     }
 }
 
+/**
+ * StressScreen composable integrates StressLevelContent with navigation.
+ */
+@Composable
+fun StressScreen(navController: NavController) {
+    StressLevelContent(
+        navController = navController,
+        onSubmit = { level, notes ->
+            saveStressData(level, notes, navController)
+        }
+    )
+}
+
+/**
+ * StressLevelContent is the UI for the Stress Check-In screen.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StressLevelContent(
+    navController: NavController,
     onSubmit: (String, String) -> Unit
 ) {
     var currentFeelingNotes by remember { mutableStateOf("") }
     var currentSelectedStressLevel by remember { mutableStateOf("Not Stressed") }
     val scrollState = rememberScrollState()
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
 
     Box(
         modifier = Modifier
@@ -163,17 +152,20 @@ fun StressLevelContent(
                 onValueChange = { currentFeelingNotes = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
-                    .focusRequester(focusRequester),
+                    .padding(8.dp),
                 textStyle = TextStyle(color = Color.Black),
-                placeholder = { Text("Enter your notes here") }
+                placeholder = { Text("Enter your notes here", color = Color.Gray) },
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
-                    // Call the onSubmit function to save data
                     onSubmit(currentSelectedStressLevel, currentFeelingNotes)
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar("Data submitted successfully!")
@@ -195,12 +187,51 @@ fun StressLevelContent(
     }
 }
 
-@Preview(showBackground = true)
+/**
+ * Saves stress level data locally.
+ */
+fun saveStressData(level: String, notes: String, navController: NavController) {
+    val context = navController.context
+    val filename = "stress_history.txt"
+    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    val userId = sharedPreferences.getString("userId", null)
+
+    if (userId.isNullOrEmpty()) {
+        Log.e("SaveStressDataError", "User ID is missing. Cannot save stress data.")
+        return
+    }
+
+    val currentTime = System.currentTimeMillis()
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    val formattedDate = dateFormat.format(Date(currentTime))
+    val fileContent = """
+        ID: $userId
+        Date: $formattedDate
+        Level: $level
+        Notes: $notes
+    """.trimIndent()
+
+    try {
+        context.openFileOutput(filename, Context.MODE_APPEND).use { output ->
+            output.write("$fileContent\n".toByteArray())
+        }
+        Log.d("SaveStressData", "Data saved successfully for user ID: $userId")
+    } catch (e: IOException) {
+        Log.e("SaveStressDataError", "Failed to save stress data to file.", e)
+    }
+}
+
+/**
+ * Preview function for StressLevelContent.
+ */
+@Preview(showBackground = true, name = "StressLevelPreview")
 @Composable
 fun StressLevelPreview() {
     MobileTheme {
         StressLevelContent(
+            navController = rememberNavController(),
             onSubmit = { _, _ -> }
         )
     }
 }
+

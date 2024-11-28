@@ -124,7 +124,7 @@ fun overview(navController: NavController) {
             )
             BottomNavigationItem(
                 selected = false,
-                onClick = { /* Handle navigation */ },
+                onClick = {navController.navigate(route="anxiety_screen")  },
                 icon = {
                     Icon(
                         Icons.Filled.Medication,

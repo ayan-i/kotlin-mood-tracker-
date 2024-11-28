@@ -24,14 +24,21 @@ class MainActivity : ComponentActivity() {
                 val startDestination = if (userId != null) "overview_screen" else "main_page"
                 Log.d("MainActivity", "Starting app with userId: $userId")
                 Log.d("MainActivity", "Start destination: $startDestination")
-                NavHost(navController = navController, startDestination = startDestination) {
+                NavHost(
+                    navController = navController,
+                    startDestination = startDestination
+                ) {
                     composable("main_page") { MainPage(navController) }
                     composable("login_screen") { LoginScreen(navController) }
                     composable("signup_screen") { SignUp(navController) }
                     composable("overview_screen") { overview(navController) }
                     composable("mood_screen") { Mood(navController) }
                     composable("history_screen") { Option(navController) }
-                    composable("advice_screen"){HelpLine(navController)}
+                    composable("advice_screen") { HelpLine(navController) }
+                    composable("stress_screen") { StressScreen(navController) }
+                    composable("anxiety_screen") { AnxietyScreen(navController) }
+
+
                 }
             }
         }

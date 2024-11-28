@@ -169,6 +169,7 @@ fun mergeEntries(
     val mergedList = mutableListOf<CombinedEntry>()
 
     for (mood in moodEntries) {
+        //loops through the mood entries
         val moodDateFull = inputFormat.parse(mood.date) // Full date with time
         val moodDateOnly = moodDateFull?.let { dateOnlyFormat.format(it) } // Extract only the date
 

@@ -34,18 +34,19 @@ import java.text.DateFormat
 import java.util.Calendar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
 
 class MyAppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            MoodPage()
+            MoodPage(navController = rememberNavController())
         }
     }
 }
 @Composable
-fun MoodPage() {
+fun MoodPage(navController: NavController) {
 
     var selectedMood by remember { mutableStateOf("") }
     val calendar = Calendar.getInstance().time
@@ -212,7 +213,8 @@ fun MoodPage() {
         fontSize = 20.sp,
         modifier = Modifier.padding(top=490.dp, start = 160.dp)
     )
-    }
+    navController.navigateUp()
+}
 
 
 
@@ -222,6 +224,6 @@ fun MoodPage() {
 @Composable
 fun PreviewMoodPage() {
     MobileTheme {
-        MoodPage()
+        MoodPage(navController = rememberNavController())
     }
 }

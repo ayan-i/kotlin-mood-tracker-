@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -48,6 +49,8 @@ class HelpLineActivity : ComponentActivity() {
 @Composable
 fun HelpLine(navController: NavController) {
     val context = LocalContext.current
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setStatusBarColor(color = Color.White)
     val scrollState = rememberScrollState()
     var feedbackText by remember { mutableStateOf(TextFieldValue("")) }
 
@@ -62,6 +65,7 @@ fun HelpLine(navController: NavController) {
             contentDescription = "UWE Image",
             modifier = Modifier
                 .fillMaxWidth() // Ensures the image spans the entire width
+                .padding(top=25.dp)
                 .height(130.dp)
         )
 

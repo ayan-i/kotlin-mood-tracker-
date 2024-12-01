@@ -131,6 +131,7 @@ fun Mood(navController: NavController) {
             }
         }
         Button(
+            //internal storage from geeksforgeeks
             onClick = {try {
                 val fos: FileOutputStream =
                     context.openFileOutput("moodSELECT.txt", Context.MODE_APPEND)

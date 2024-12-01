@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -54,7 +55,6 @@ fun overview(navController: NavController) {
         Text("Error: No user session found.")
     }
     systemUiController.setStatusBarColor(color = Color.Black)
-    systemUiController.setNavigationBarColor(colorResource(R.color.lightpurple))
 
  //hello
     Box(
@@ -65,7 +65,7 @@ fun overview(navController: NavController) {
         Icon(
             Icons.AutoMirrored.Filled.Logout,
             tint = Color.White,
-            contentDescription = null,
+        contentDescription = null,
             modifier = Modifier.size(60.dp).padding(top = 30.dp)
                 .clickable {
                     logout(navController, context) }
@@ -75,6 +75,7 @@ fun overview(navController: NavController) {
             fontSize = 30.sp,
             color = Color.White,
             modifier = Modifier.padding(top = 30.dp, start = 135.dp)
+
         )
 
 
@@ -83,13 +84,13 @@ fun overview(navController: NavController) {
             backgroundColor = colorResource(R.color.lightpurple),
             contentColor = Color.Black,
             modifier = Modifier
-                .padding(top = 790.dp)
                 .fillMaxWidth()
+                .align(alignment=Alignment.BottomCenter)
                 .height(100.dp)
         ) {
             BottomNavigationItem(
                 selected = false ,
-                onClick = { navController.navigate("overview_screen")},
+                onClick = { navController.navigate("stress_screen")},
                 icon = {
                     Icon(
                         Icons.AutoMirrored.Filled.ShowChart,
@@ -113,7 +114,7 @@ fun overview(navController: NavController) {
             )
             BottomNavigationItem(
                 selected = false,
-                onClick = { navController.navigate(route = "mood_screen")},
+                onClick = { navController.navigate(route = "anxiety_screen")},
                 icon = {
                     Icon(
                         Icons.Filled.AddCircleOutline,

@@ -39,6 +39,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.merge
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class OptionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,31 +65,38 @@ data class CombinedEntry(
     val anxietyNotes: String?
 )
 
-
-
-fun readMoodHistory(context: Context,userId:String): List<MoodEntry> {
+//reading internal storage uwe week activity
+//also geeks for geeks
+fun readMoodHistory(context: Context, userId: String): List<MoodEntry> {
     return try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val outputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault())
 
-        val fileInputStream: FileInputStream = context.openFileInput("moodSELECT.txt")
-        val lines = fileInputStream.bufferedReader().readLines()
+        val inputStream = context.openFileInput("moodSELECT.txt")
+        val lines = BufferedReader(InputStreamReader(inputStream))
 
-        lines.mapNotNull { line ->
+        val moodEntries = mutableListOf<MoodEntry>()
+
+        lines.forEachLine { line ->
             val parts = line.split(",")
             if (parts.size == 3 && parts[0] == userId) {
-                val stored_date = parts[1].trim()
+                val storedDate = parts[1].trim()
                 val mood = parts[2].trim()
-                val date = inputFormat.parse(stored_date)
-                val formattedDate = if (date != null) outputFormat.format(date) else stored_date
-
-                MoodEntry(formattedDate, mood)
-            } else {
-                null
+                val date = inputFormat.parse(storedDate)
+                val formattedDate =
+                    if (date != null) {
+                    outputFormat.format(date)
+                        }
+                    else {
+                        storedDate
+                }
+                moodEntries.add(MoodEntry(formattedDate, mood))
             }
         }
-    } catch (e: IOException) {
-        Log.e("MoodHistory", "Error reading mood1.txt file", e)
+
+        moodEntries
+    } catch (e: Exception) {
+        Log.e("MoodHistory", "Error reading or processing moodSELECT.txt", e)
         emptyList()
     }
 }
@@ -97,9 +106,8 @@ fun readStressHistory(context: Context, userId: String): List<StressEntry> {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) // Original format
         val outputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault()) // Desired format
 
-        val fileInputStream: FileInputStream = context.openFileInput("stress_history.txt")
-        val lines = fileInputStream.bufferedReader().readLines()
-
+        val inputStream = context.openFileInput("stress_history.txt")
+        val lines = BufferedReader(InputStreamReader(inputStream)).readLines()
         lines.chunked(4).mapNotNull { chunk ->
             if (chunk.size == 4) {
                 val id = chunk[0].substringAfter("ID:").trim()
@@ -130,8 +138,8 @@ fun readAnxietyHistory(context: Context, userId: String): List<AnxietyEntry> {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) // Original format
         val outputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault()) // Desired format
 
-        val fileInputStream: FileInputStream = context.openFileInput("anxiety_data.txt")
-        val lines = fileInputStream.bufferedReader().readLines()
+        val inputStream = context.openFileInput("anxiety_data.txt")
+        val lines = BufferedReader(InputStreamReader(inputStream)).readLines()
 
         lines.chunked(4).mapNotNull { chunk ->
             if (chunk.size == 4) {
@@ -157,7 +165,6 @@ fun readAnxietyHistory(context: Context, userId: String): List<AnxietyEntry> {
     }
 }
 
-
 fun mergeEntries(
     moodEntries: List<MoodEntry>,
     stressEntries: List<StressEntry>,
@@ -166,41 +173,56 @@ fun mergeEntries(
     val inputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault()) // Matches the actual format
     val dateOnlyFormat = SimpleDateFormat("EEEE MMM d", Locale.getDefault()) // To extract only the date
 
-    // Group mood entries by day
+    // Group mood, stress, and anxiety entries by day
     val moodsGroupedByDay = moodEntries.groupBy {
+        inputFormat.parse(it.date)?.let { date -> dateOnlyFormat.format(date) }
+    }
+
+    val stressGroupedByDay = stressEntries.groupBy {
+        inputFormat.parse(it.date)?.let { date -> dateOnlyFormat.format(date) }
+    }
+
+    val anxietyGroupedByDay = anxietyEntries.groupBy {
         inputFormat.parse(it.date)?.let { date -> dateOnlyFormat.format(date) }
     }
 
     val mergedList = mutableListOf<CombinedEntry>()
 
+    // Iterate through mood entries grouped by day
     for ((day, moods) in moodsGroupedByDay) {
         if (day != null) {
-            // Find the last mood entry for the day
-            val lastMood = moods.maxByOrNull { inputFormat.parse(it.date)?.time ?: 0L }
+            // Get all stress and anxiety entries for the current day
+            val dailyStressEntries = stressGroupedByDay[day]?.toMutableList() ?: mutableListOf()
+            val dailyAnxietyEntries = anxietyGroupedByDay[day]?.toMutableList() ?: mutableListOf()
 
-            // Find matching stress and anxiety for the day
-            val stressMatch = stressEntries.find {
-                val stressDate = inputFormat.parse(it.date)
-                val stressDateOnly = stressDate?.let { dateOnlyFormat.format(it) }
-                stressDateOnly == day
-            }
-
-            val anxietyMatch = anxietyEntries.find {
-                val anxietyDate = inputFormat.parse(it.date)
-                val anxietyDateOnly = anxietyDate?.let { dateOnlyFormat.format(it) }
-                anxietyDateOnly == day
-            }
-
-            // Add all moods for the day, ensuring stress/anxiety only on the last one
+            // Add each mood entry for the day
             moods.forEach { mood ->
+                // Find the closest stress and anxiety entry for the current mood
+                val matchingStress = dailyStressEntries.minByOrNull {
+                    val stressTime = inputFormat.parse(it.date)?.time ?: Long.MAX_VALUE
+                    val moodTime = inputFormat.parse(mood.date)?.time ?: 0L
+                    kotlin.math.abs(moodTime - stressTime)
+                }
+
+                val matchingAnxiety = dailyAnxietyEntries.minByOrNull {
+                    val anxietyTime = inputFormat.parse(it.date)?.time ?: Long.MAX_VALUE
+                    val moodTime = inputFormat.parse(mood.date)?.time ?: 0L
+                    kotlin.math.abs(moodTime - anxietyTime)
+                }
+
+                // Remove the matched stress and anxiety entry to prevent reusing them
+                dailyStressEntries.remove(matchingStress)
+                dailyAnxietyEntries.remove(matchingAnxiety)
+
+                // Add the combined entry to the merged list
                 mergedList.add(
                     CombinedEntry(
                         date = mood.date,
                         mood = mood.mood,
-                        stressLevel = if (mood == lastMood) stressMatch?.stressLevel else null,
-                        stressNotes = if (mood == lastMood) stressMatch?.Notes else null,
-                        anxietyLevel = if (mood == lastMood) anxietyMatch?.anxietyLevel else null,
-                        anxietyNotes = if (mood == lastMood) anxietyMatch?.Notes else null
+                        stressLevel = matchingStress?.stressLevel,
+                        stressNotes = matchingStress?.Notes,
+                        anxietyLevel = matchingAnxiety?.anxietyLevel,
+                        anxietyNotes = matchingAnxiety?.Notes
                     )
                 )
             }
@@ -210,17 +232,14 @@ fun mergeEntries(
     return mergedList
 }
 
-
-
-
 @Composable
 fun Option(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.Black)
-    systemUiController.setNavigationBarColor(colorResource(R.color.lightpurple))
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-    val userId = sharedPreferences.getString("userId", null) // Safely retrieve userId
+    // Retrieve userId from shared preferences
+    val userId = sharedPreferences.getString("userId", null)
     var moodHistory by remember { mutableStateOf<List<MoodEntry>>(emptyList()) }
     var stressHistory by remember { mutableStateOf<List<StressEntry>>(emptyList()) }
     var anxietyHistory by remember { mutableStateOf<List<AnxietyEntry>>(emptyList()) }
@@ -278,13 +297,11 @@ fun Option(navController: NavController) {
             }
         }
 
-
-        // BottomNavigation
         BottomNavigation(
             backgroundColor = colorResource(R.color.lightpurple),
             contentColor = Color.Black,
             modifier = Modifier
-                .padding(top = 790.dp)
+                .padding(top = 820.dp)
                 .fillMaxWidth()
                 .height(100.dp)
         ) {
@@ -353,107 +370,123 @@ fun Option(navController: NavController) {
 
 @Composable
 fun MoodHistoryCard(entry: CombinedEntry) {
-    data class Mood(val id: Int,val Moodname: String, val MoodEmoji: Int,val color:Color)
-//    val formattedDate = formatDateWithDayOfWeek(entry.date)
-    var expands by remember { mutableStateOf(false) }
+    data class Mood(val id: Int, val Moodname: String, val MoodEmoji: Int, val color: Color)
 
     val moods = listOf(
-        Mood(1,"Joyful", R.drawable.veryhappy,colorResource(R.color.lightblue)),
-        Mood(2,"Happy", R.drawable.sentiment_satisfied_24dp_61c52f_fill0_wght400_grad0_opsz24,colorResource(R.color.green)),
-        Mood(3,"Meh", R.drawable.neutral,colorResource(R.color.yellow)),
-        Mood(4,"Bad", R.drawable.sentiment_dissatisfied_24dp_dc602e_fill0_wght400_grad0_opsz24,colorResource(R.color.orange)),
-        Mood(5,"Down", R.drawable.sentiment_very_dissatisfied_24dp_e73e3e_fill0_wght400_grad0_opsz24,colorResource(R.color.red))
+        Mood(1, "Joyful", R.drawable.veryhappy, colorResource(R.color.lightblue)),
+        Mood(
+            2,
+            "Happy",
+            R.drawable.sentiment_satisfied_24dp_61c52f_fill0_wght400_grad0_opsz24,
+            colorResource(R.color.green)
+        ),
+        Mood(3, "Meh", R.drawable.neutral, colorResource(R.color.yellow)),
+        Mood(
+            4,
+            "Bad",
+            R.drawable.sentiment_dissatisfied_24dp_dc602e_fill0_wght400_grad0_opsz24,
+            colorResource(R.color.orange)
+        ),
+        Mood(
+            5,
+            "Down",
+            R.drawable.sentiment_very_dissatisfied_24dp_e73e3e_fill0_wght400_grad0_opsz24,
+            colorResource(R.color.red)
+        )
     )
     val moodEmoji = moods.find { it.Moodname == entry.mood }
-
+    var expands by remember { mutableStateOf(false) }
 
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 12.dp)
-            .wrapContentHeight()
             .clickable { expands = !expands }
-            .animateContentSize(),
+            .animateContentSize(),//makes the animation
         backgroundColor = colorResource(R.color.boxcolor),
-        shape = RoundedCornerShape(25.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = 4.dp
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start=10.dp,top=5.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-
-            Image(
-                painter = painterResource(id = moodEmoji?.MoodEmoji ?: R.drawable.chill),
-                contentDescription = "emotion",
-                modifier = Modifier
-                    .size(80.dp)
-                    .padding(end = 20.dp)
-            )
-
-            Column {
-//                Icon(
-//                    imageVector = if (expands) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-//                    contentDescription = null,
-//                    modifier = Modifier.clickable { expands = !expands }
-//                )
-                Text(
-                    text = entry.date,
-                    color = Color.White,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = moodEmoji?.MoodEmoji ?: R.drawable.chill),
+                    contentDescription = "Mood Icon",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .padding(end = 16.dp)
                 )
-                Text(
-                    text = entry.mood,
-                    color = moodEmoji?.color ?: Color.Black,
-                    fontSize = 25.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Column {
+                    Text(
+                        text = entry.date,
+                        color = Color.Gray,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                    Text(
+                        text = entry.mood,
+                        color = moodEmoji?.color ?: Color.Black,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                if (expands) {
-                    entry.stressLevel?.let {
-                        if (it.isNotEmpty()) {
-                            Text(
-                                text = "Stress Level: $it",
-                                color = Color.White,
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-                    entry.anxietyLevel?.let {
-                        if (it.isNotEmpty()) {
-                            Text(
-                                text = "Anxiety Level: $it",
-                                color = Color.White,
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-                    entry.anxietyNotes?.let {
-                        if (it.isNotEmpty()) {
-                            Text(
-                                text = "Anxiety Notes: $it",
-                                color = Color.Gray,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
-                    entry.stressNotes?.let {
-                        if (it.isNotEmpty()) {
-                            Text(
-                                text = "Stress Notes: $it",
-                                color = Color.Gray,
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
                 }
             }
 
+            //expands only when there is stress or anxiety info
+            if (expands) {
+                entry.stressLevel?.let {
+                    if (it.isNotEmpty()) {
+                        Text(
+                            text = "Stress Level: $it",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+                entry.stressNotes?.let {
+                    if (it.isNotEmpty()) {
+                        Text(
+                            text = "Stress Notes: $it",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+                entry.anxietyLevel?.let {
+                    if (it.isNotEmpty()) {
+                        Text(
+                            text = "Anxiety Level: $it",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+                entry.anxietyNotes?.let {
+                    if (it.isNotEmpty()) {
+                        Text(
+                            text = "Anxiety Notes: $it",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
 
+                }
+            }
         }
-        }
+
     }
+}
+
 
 
 

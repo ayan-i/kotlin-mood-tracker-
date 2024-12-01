@@ -165,64 +165,42 @@ fun readAnxietyHistory(context: Context, userId: String): List<AnxietyEntry> {
     }
 }
 
+//go back to it and rework it
 fun mergeEntries(
     moodEntries: List<MoodEntry>,
     stressEntries: List<StressEntry>,
     anxietyEntries: List<AnxietyEntry>
 ): List<CombinedEntry> {
-    val inputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault()) // Matches the actual format
-    val dateOnlyFormat = SimpleDateFormat("EEEE MMM d", Locale.getDefault()) // To extract only the date
+    val inputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault())
+    val dateOnlyFormat = SimpleDateFormat("EEEE MMM d", Locale.getDefault())
 
-    // Group mood, stress, and anxiety entries by day
-    val moodsGroupedByDay = moodEntries.groupBy {
-        inputFormat.parse(it.date)?.let { date -> dateOnlyFormat.format(date) }
-    }
-
-    val stressGroupedByDay = stressEntries.groupBy {
-        inputFormat.parse(it.date)?.let { date -> dateOnlyFormat.format(date) }
-    }
-
-    val anxietyGroupedByDay = anxietyEntries.groupBy {
-        inputFormat.parse(it.date)?.let { date -> dateOnlyFormat.format(date) }
-    }
+    val moodsByDay = moodEntries.groupBy { inputFormat.parse(it.date)?.let { dateOnlyFormat.format(it) } }
+    val stressByDay = stressEntries.groupBy { inputFormat.parse(it.date)?.let { dateOnlyFormat.format(it) } }
+    val anxietyByDay = anxietyEntries.groupBy { inputFormat.parse(it.date)?.let { dateOnlyFormat.format(it) } }
 
     val mergedList = mutableListOf<CombinedEntry>()
 
-    // Iterate through mood entries grouped by day
-    for ((day, moods) in moodsGroupedByDay) {
+
+    moodsByDay.forEach { (day, moods) ->
         if (day != null) {
-            // Get all stress and anxiety entries for the current day
-            val dailyStressEntries = stressGroupedByDay[day]?.toMutableList() ?: mutableListOf()
-            val dailyAnxietyEntries = anxietyGroupedByDay[day]?.toMutableList() ?: mutableListOf()
+            val dailyStress = stressByDay[day]?.toMutableList() ?: mutableListOf()
+            val dailyAnxiety = anxietyByDay[day]?.toMutableList() ?: mutableListOf()
 
-            // Add each mood entry for the day
             moods.forEach { mood ->
-                // Find the closest stress and anxiety entry for the current mood
-                val matchingStress = dailyStressEntries.minByOrNull {
-                    val stressTime = inputFormat.parse(it.date)?.time ?: Long.MAX_VALUE
-                    val moodTime = inputFormat.parse(mood.date)?.time ?: 0L
-                    kotlin.math.abs(moodTime - stressTime)
-                }
+                val stress = dailyStress.minByOrNull { timeDiff(it.date, mood.date, inputFormat) }
+                val anxiety = dailyAnxiety.minByOrNull { timeDiff(it.date, mood.date, inputFormat) }
 
-                val matchingAnxiety = dailyAnxietyEntries.minByOrNull {
-                    val anxietyTime = inputFormat.parse(it.date)?.time ?: Long.MAX_VALUE
-                    val moodTime = inputFormat.parse(mood.date)?.time ?: 0L
-                    kotlin.math.abs(moodTime - anxietyTime)
-                }
+                dailyStress.remove(stress)
+                dailyAnxiety.remove(anxiety)
 
-                // Remove the matched stress and anxiety entry to prevent reusing them
-                dailyStressEntries.remove(matchingStress)
-                dailyAnxietyEntries.remove(matchingAnxiety)
-
-                // Add the combined entry to the merged list
                 mergedList.add(
                     CombinedEntry(
                         date = mood.date,
                         mood = mood.mood,
-                        stressLevel = matchingStress?.stressLevel,
-                        stressNotes = matchingStress?.Notes,
-                        anxietyLevel = matchingAnxiety?.anxietyLevel,
-                        anxietyNotes = matchingAnxiety?.Notes
+                        stressLevel = stress?.stressLevel,
+                        stressNotes = stress?.Notes,
+                        anxietyLevel = anxiety?.anxietyLevel,
+                        anxietyNotes = anxiety?.Notes
                     )
                 )
             }
@@ -230,6 +208,12 @@ fun mergeEntries(
     }
 
     return mergedList
+}
+
+private fun timeDiff(date1: String, date2: String, format: SimpleDateFormat): Long {
+    val time1 = format.parse(date1)?.time ?: Long.MAX_VALUE
+    val time2 = format.parse(date2)?.time ?: 0L
+    return kotlin.math.abs(time1 - time2)
 }
 
 @Composable

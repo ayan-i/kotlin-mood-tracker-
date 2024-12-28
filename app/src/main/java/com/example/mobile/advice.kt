@@ -1,3 +1,5 @@
+
+
 package com.example.mobile // Make sure to include your package name
 
 import android.content.Context
@@ -30,7 +32,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.mobile.R
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import java.text.SimpleDateFormat
@@ -52,7 +53,6 @@ fun HelpLine(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.White)
     val scrollState = rememberScrollState()
-    var feedbackText by remember { mutableStateOf(TextFieldValue("")) }
 
     Column(
         modifier = Modifier
@@ -221,73 +221,12 @@ fun HelpLine(navController: NavController) {
                     }
                 )
             }
-
-            // Feedback Section with TextField and Submit Button
-            SectionCard("Feedback") {
-                OutlinedTextField(
-                    value = feedbackText,
-                    onValueChange = { feedbackText = it },
-                    label = { Text("Enter your feedback") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Button(
-                    onClick = {
-                        saveFeedback(context, feedbackText.text)
-                        feedbackText = TextFieldValue("") // Clear the text after saving
-                    },
-                    modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6200EE)) // Purple button
-                ) {
-                    Text("Submit", color = Color.White)
-                }
-            }
         }
-    }
-}
-
-// Function to save feedback with date and time in internal storage
-fun saveFeedback(context: Context, feedback: String) {
-    val currentTime = System.currentTimeMillis()
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-    val formattedDate = dateFormat.format(Date(currentTime))
-
-    val fileContent = """
-        Date: $formattedDate
-        Feedback: $feedback
-
-    """.trimIndent()
-
-    try {
-        context.openFileOutput("feedback.txt", Context.MODE_APPEND).use { output ->
-            output.write(fileContent.toByteArray())
-        }
-        Toast.makeText(context, "Feedback submitted!", Toast.LENGTH_SHORT).show()
-    } catch (e: Exception) {
-        Toast.makeText(context, "Failed to submit feedback", Toast.LENGTH_SHORT).show()
-    }
-}
-
-// Function to read feedback from internal storage
-fun readFeedback(context: Context): String {
-    return try {
-        context.openFileInput("feedback.txt").bufferedReader().useLines { lines ->
-            lines.joinToString("\n")
-        }
-    } catch (e: Exception) {
-        "No feedback available."
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewHelpLine() {
-    HelpLine(navController=rememberNavController
-        ())
+    HelpLine(navController=rememberNavController())
 }
-//hello
-

@@ -29,6 +29,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 class StressLevel : ComponentActivity() {
@@ -71,6 +72,8 @@ fun StressLevelContent(
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(color = Color.Transparent)
     val focusManager = LocalFocusManager.current
 
     Box(
@@ -171,6 +174,7 @@ fun StressLevelContent(
                         snackbarHostState.showSnackbar("Data submitted successfully!")
                     }
                     focusManager.clearFocus()
+                    navController.navigateUp()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

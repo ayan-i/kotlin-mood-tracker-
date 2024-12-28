@@ -36,9 +36,11 @@ import android.util.Log
 import androidx.compose.ui.draw.shadow
 import java.io.FileInputStream
 import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -85,11 +87,11 @@ fun readMoodHistory(context: Context, userId: String): List<MoodEntry> {
                 val date = inputFormat.parse(storedDate)
                 val formattedDate =
                     if (date != null) {
-                    outputFormat.format(date)
-                        }
+                        outputFormat.format(date)
+                    }
                     else {
                         storedDate
-                }
+                    }
                 moodEntries.add(MoodEntry(formattedDate, mood))
             }
         }
@@ -183,6 +185,7 @@ fun mergeEntries(
 
     moodsByDay.forEach { (day, moods) ->
         if (day != null) {
+            //use of ?: to show if it is null from kotlin website as elvis operator
             val dailyStress = stressByDay[day]?.toMutableList() ?: mutableListOf()
             val dailyAnxiety = anxietyByDay[day]?.toMutableList() ?: mutableListOf()
 
@@ -210,6 +213,10 @@ fun mergeEntries(
     return mergedList
 }
 
+//used to calculate time difference
+//use of ?: to show if it is null from kotlin website as elvis operator
+//Long.MAX_VALUE means gets the highest value
+//0l long value default to 0
 private fun timeDiff(date1: String, date2: String, format: SimpleDateFormat): Long {
     val time1 = format.parse(date1)?.time ?: Long.MAX_VALUE
     val time2 = format.parse(date2)?.time ?: 0L
@@ -220,8 +227,13 @@ private fun timeDiff(date1: String, date2: String, format: SimpleDateFormat): Lo
 fun Option(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.Black)
+    systemUiController.setNavigationBarColor(color = colorResource(R.color.lightpurple))
+
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+
     // Retrieve userId from shared preferences
     val userId = sharedPreferences.getString("userId", null)
     var moodHistory by remember { mutableStateOf<List<MoodEntry>>(emptyList()) }
@@ -229,128 +241,215 @@ fun Option(navController: NavController) {
     var anxietyHistory by remember { mutableStateOf<List<AnxietyEntry>>(emptyList()) }
     var combinedHistory by remember { mutableStateOf<List<CombinedEntry>>(emptyList()) }
 
-
-    //doesn't delay the UI and runs it seperately not in the main thread
+    // Load data in a non-blocking way
     LaunchedEffect(context) {
         if (!userId.isNullOrEmpty()) {
             Log.d("UserId", "Retrieved userId: $userId")
             moodHistory = readMoodHistory(context, userId)
-            stressHistory= readStressHistory(context,userId)
-            anxietyHistory= readAnxietyHistory(context,userId)
-            combinedHistory = mergeEntries(moodHistory, stressHistory, anxietyHistory) // Fix
-
-
+            stressHistory = readStressHistory(context, userId)
+            anxietyHistory = readAnxietyHistory(context, userId)
+            combinedHistory = mergeEntries(moodHistory, stressHistory, anxietyHistory)
 
             Log.d("MoodHistory", "Loaded entries: ${moodHistory.size}")
             Log.d("StressHistory", "Loaded entries: ${stressHistory.size}")
             Log.d("AnxietyHistory", "Loaded entries: ${anxietyHistory.size}")
-            Log.d("CombinedHostory", "Loaded entries: ${combinedHistory.size}")
-
-
+            Log.d("CombinedHistory", "Loaded entries: ${combinedHistory.size}")
         } else {
             Log.e("MoodHistory", "Error: User ID is null or empty")
         }
     }
 
-    if (moodHistory.isEmpty()) {
-        Text("No mood history available", color = Color.White)
-    }
-
-    Box(
-        modifier = Modifier
-            .background(color = Color.Black)
-            .fillMaxSize()
+    ModalDrawer(
+        drawerState = drawerState,
+        drawerContent = { DrawerContent1(navController, context) }
     ) {
-        Text(
-            text = "History",
-            fontSize = 30.sp,
-            color = Color.White,
-            modifier = Modifier.padding(top = 30.dp, start = 135.dp)
-        )
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 100.dp, start = 20.dp, end = 20.dp, bottom = 70.dp)
-
-        ) {
-            items(combinedHistory) { entry ->
-                MoodHistoryCard(entry)
-                Spacer(modifier = Modifier.height(10.dp))
-
-            }
-        }
-
-        BottomNavigation(
-            backgroundColor = colorResource(R.color.lightpurple),
-            contentColor = Color.Black,
-            modifier = Modifier
-                .padding(top = 820.dp)
-                .fillMaxWidth()
-                .height(100.dp)
-        ) {
-            BottomNavigationItem(
-                selected = false ,
-                onClick = {navController.navigate("overview_screen")},
-                icon = {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ShowChart,
-                        contentDescription = null,
-                        modifier = Modifier.size(50.dp).padding(top = 10.dp)
-                    )
-                },
-                label = { Text("Overview", fontWeight = FontWeight.SemiBold, fontSize = 13.sp) }
-            )
-            BottomNavigationItem(
-                selected = false,
-                onClick = { navController.navigate("history_screen")},
-                icon = {
-                    Icon(
-                        Icons.Filled.History,
-                        contentDescription = null,
-                        modifier = Modifier.size(50.dp).padding(top = 10.dp),
-                    )
-                },
-                label = { Text("History", fontSize = 16.sp, fontWeight = FontWeight.Medium)}
-            )
-            BottomNavigationItem(
-                selected = false,
-                onClick = { navController.navigate("mood_screen") },
-                icon = {
-                    Icon(
-                        Icons.Filled.AddCircleOutline,
-                        contentDescription = null,
-                        modifier = Modifier.size(60.dp).padding(top = 10.dp)
-                    )
-                }
-            )
-            BottomNavigationItem(
-                selected = false,
-                onClick ={ },
-                icon = {
-                    Icon(
-                        Icons.Filled.Medication,
-                        contentDescription = null,
-                        modifier = Modifier.size(50.dp).padding(top = 10.dp)
-                    )
-                },
-                label = { Text("Med", fontSize = 16.sp) }
-            )
-            BottomNavigationItem(
-                selected = false,
-                onClick = {navController.navigate(route="advice_screen") },
-                icon = {
-                    Icon(
-                    imageVector = Icons.Default.Phone,
-                    contentDescription = "Help",
-                    modifier = Modifier.size(23.dp)
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("History") },
+                    backgroundColor = colorResource(R.color.lightpurple),
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            coroutineScope.launch {
+                                if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                            }
+                        }) {
+                            Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    modifier = Modifier.padding(top = 25.dp)
                 )
-                },
-                label = { Text("Support", fontSize = 11.sp) }
-            )
-        }
+            },
+            content = { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = Color.Black)
+                        .padding(padding)
+                ) {
+                    if (combinedHistory.isEmpty()) {
+                        Text(
+                            text = "No mood history available",
+                            color = Color.White,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    top = 16.dp,
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    bottom = 16.dp
+                                )
+                        ) {
+                            items(combinedHistory) { entry ->
+                                MoodHistoryCard(entry)
+                                Spacer(modifier = Modifier.height(10.dp))
+                            }
+                        }
+                    }
+                }
+            },
+            bottomBar = {
+                BottomNavigationBar1(navController = navController)
+            }
+        )
     }
 }
+
+@Composable
+fun BottomNavigationBar1(navController: NavController) {
+    BottomNavigation(
+        backgroundColor = colorResource(R.color.lightpurple),
+        contentColor = Color.Black,
+        modifier = Modifier.padding(bottom = 22.dp)
+    ) {
+        BottomNavigationItem(
+            selected = false,
+            onClick = { navController.navigate("stress_screen") },
+            icon = {
+                Icon(
+                    Icons.Default.Dashboard,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(top = 10.dp)
+                )
+            },
+            label = { Text("Overview", fontWeight = FontWeight.SemiBold, fontSize = 13.sp) }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = { navController.navigate("history_screen") },
+            icon = {
+                Icon(
+                    Icons.Default.History,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(top = 10.dp)
+                )
+            },
+            label = { Text("History", fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = { navController.navigate("mood_screen") },
+            icon = {
+                Icon(
+                    Icons.Default.AddCircle,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(top = 10.dp)
+                )
+            }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = { navController.navigate("stress_screen") },
+            icon = {
+                Icon(
+                    Icons.Default.Medication,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .padding(top = 10.dp)
+                )
+            },
+            label = { Text("Med", fontSize = 16.sp) }
+        )
+        BottomNavigationItem(
+            selected = false,
+            onClick = { navController.navigate("advice_screen") },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Phone,
+                    contentDescription = "Help",
+                    modifier = Modifier
+                        .size(44.dp)
+                        .padding(top = 10.dp)
+                )
+            },
+            label = { Text("Advice", fontSize = 13.sp) }
+        )
+    }
+}
+
+@Composable
+fun DrawerContent1(navController: NavController, context: Context) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = colorResource(R.color.lightpurple))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Navigation Menu",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
+        )
+        Divider(color = Color.Black, thickness = 1.dp)
+
+        DrawerItem1("Overview", Icons.Default.Dashboard) { navController.navigate("overview_screen") }
+        DrawerItem1("Advice", Icons.Default.Phone) { navController.navigate("advice_screen") }
+        DrawerItem1("Mood", Icons.Default.AddCircle) { navController.navigate("mood_screen") }
+        DrawerItem1("Stress Level", Icons.Default.BatteryAlert) { navController.navigate("stress_screen") }
+        DrawerItem1("Anxiety Level", Icons.Default.Warning) { navController.navigate("anxiety_screen") }
+        DrawerItem1("Logout", Icons.Default.Logout) { logout(navController, context) }
+    }
+}
+
+@Composable
+fun DrawerItem1(label: String, icon: ImageVector, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            color = Color.Black,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+
 
 @Composable
 fun MoodHistoryCard(entry: CombinedEntry) {
@@ -400,13 +499,15 @@ fun MoodHistoryCard(entry: CombinedEntry) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = moodEmoji?.MoodEmoji ?: R.drawable.chill),
-                    contentDescription = "Mood Icon",
-                    modifier = Modifier
-                        .size(80.dp)
-                        .padding(end = 16.dp)
-                )
+                moodEmoji?.let {
+                    Image(
+                        painter = painterResource(id = it.MoodEmoji),
+                        contentDescription = "Mood Icon",
+                        modifier = Modifier
+                            .size(80.dp)
+                            .padding(end = 16.dp)
+                    )
+                }
                 Column {
                     Text(
                         text = entry.date,
@@ -444,25 +545,25 @@ fun MoodHistoryCard(entry: CombinedEntry) {
                             fontSize = 14.sp
                         )
                     }
-                entry.anxietyLevel?.let {
-                    if (it.isNotEmpty()) {
-                        Text(
-                            text = "Anxiety Level: $it",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
+                    entry.anxietyLevel?.let {
+                        if (it.isNotEmpty()) {
+                            Text(
+                                text = "Anxiety Level: $it",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
                     }
-                }
-                entry.anxietyNotes?.let {
-                    if (it.isNotEmpty()) {
-                        Text(
-                            text = "Anxiety Notes: $it",
-                            color = Color.Gray,
-                            fontSize = 14.sp
-                        )
+                    entry.anxietyNotes?.let {
+                        if (it.isNotEmpty()) {
+                            Text(
+                                text = "Anxiety Notes: $it",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
-                }
 
                 }
             }
@@ -470,6 +571,7 @@ fun MoodHistoryCard(entry: CombinedEntry) {
 
     }
 }
+
 
 
 

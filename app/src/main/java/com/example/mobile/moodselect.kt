@@ -143,7 +143,7 @@ fun Mood(navController: NavController) {
                 e.printStackTrace()
             }
                 Toast.makeText(context, "Data saved successfully..", Toast.LENGTH_SHORT).show()
-
+                navController.navigateUp()
             },
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = colorResource(R.color.darkpurple)

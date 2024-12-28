@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -30,6 +31,8 @@ fun AnxietyScreen(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(color = Color.Transparent)
 
     Box(
         modifier = Modifier
@@ -47,6 +50,7 @@ fun AnxietyScreen(navController: NavController) {
                 fontSize = 30.sp,
                 color = Color.White,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
+                    .padding(top=25.dp)
             )
 
             Spacer(modifier = Modifier.height(24.dp))

@@ -328,7 +328,7 @@ fun BottomNavigationBar1(navController: NavController) {
     ) {
         BottomNavigationItem(
             selected = false,
-            onClick = { navController.navigate("stress_screen") },
+            onClick = { navController.navigate("overview_screen") },
             icon = {
                 Icon(
                     Icons.Default.Dashboard,
@@ -389,7 +389,7 @@ fun BottomNavigationBar1(navController: NavController) {
                     imageVector = Icons.Default.Phone,
                     contentDescription = "Help",
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .padding(top = 10.dp)
                 )
             },
@@ -571,8 +571,6 @@ fun MoodHistoryCard(entry: CombinedEntry) {
 
     }
 }
-
-
 
 
 

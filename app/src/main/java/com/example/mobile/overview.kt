@@ -392,7 +392,7 @@ fun BottomNavigationBar(navController: NavController) {
     ) {
         BottomNavigationItem(
             selected = false,
-            onClick = { navController.navigate("stress_screen") },
+            onClick = { navController.navigate("overview_screen") },
             icon = {
                 Icon(
                     Icons.Default.Dashboard,
@@ -444,7 +444,7 @@ fun BottomNavigationBar(navController: NavController) {
                 Icon(
                     imageVector = Icons.Default.Phone,
                     contentDescription = "Help",
-                    modifier = Modifier.size(44.dp).padding(top = 10.dp)
+                    modifier = Modifier.size(48.dp).padding(top = 10.dp)
                 )
             },
             label = { Text("Advice", fontSize = 13.sp) }

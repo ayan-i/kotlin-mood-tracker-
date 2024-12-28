@@ -52,6 +52,7 @@ fun HelpLine(navController: NavController) {
     val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.White)
+    systemUiController.setNavigationBarColor(color = Color.Transparent)
     val scrollState = rememberScrollState()
 
     Column(
@@ -64,7 +65,7 @@ fun HelpLine(navController: NavController) {
             painter = painterResource(id = R.drawable.uwe),
             contentDescription = "UWE Image",
             modifier = Modifier
-                .fillMaxWidth() // Ensures the image spans the entire width
+                .fillMaxWidth()
                 .padding(top=25.dp)
                 .height(130.dp)
         )

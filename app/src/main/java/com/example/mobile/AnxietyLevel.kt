@@ -1,3 +1,5 @@
+
+
 package com.example.mobile
 
 import android.content.Context
@@ -32,12 +34,21 @@ fun AnxietyScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val systemUiController = rememberSystemUiController()
-    systemUiController.setSystemBarsColor(color = Color.Transparent)
+    systemUiController.setNavigationBarColor(color = Color.Black)
+
+
+    // Colours for the intensity levels (from old code)
+    val intensityColors = listOf(
+        Color.Red, Color(0xFFFF5722), Color(0xFFFF9800), Color(0xFFFFC107),
+        Color(0xFFFFEB3B), Color(0xFFCDDC39), Color(0xFF8BC34A), Color(0xFF4CAF50),
+        Color(0xFF009688), Color(0xFF03A9F4)
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
+            .padding(top=35.dp)
     ) {
         Column(
             modifier = Modifier
@@ -50,7 +61,6 @@ fun AnxietyScreen(navController: NavController) {
                 fontSize = 30.sp,
                 color = Color.White,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
-                    .padding(top=25.dp)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -61,12 +71,15 @@ fun AnxietyScreen(navController: NavController) {
                 "Anxiety Comes and Goes", "Bad", "Very Bad", "Not Anxious"
             )
 
-            intensityTexts.forEach { text ->
+            intensityTexts.forEachIndexed { index, text ->
                 Button(
                     onClick = { currentSelectedAnxietyLevel = text },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
+                        .padding(vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = intensityColors[index] // Apply corresponding colour
+                    )
                 ) {
                     Text(
                         text = text,

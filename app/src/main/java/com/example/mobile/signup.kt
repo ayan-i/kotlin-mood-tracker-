@@ -57,12 +57,14 @@ class SignUpActivity : ComponentActivity() {
 }
 @Composable
 fun SignUp(navController: NavController) {
+    //forget password [make another page send an email]
+    //username validation [otherwise it will crash]
     var selectedMood by remember { mutableStateOf("") }
     val context = LocalContext.current
     var checked by remember { mutableStateOf(true) }
     var password by remember { mutableStateOf(value = "") }
     var username by remember { mutableStateOf(value = "") }
-    var showPassword by remember { mutableStateOf(value="") }
+    var showPassword by remember { mutableStateOf(value = "") }
     var email by remember { mutableStateOf(value = "") }
     var full_Name by remember { mutableStateOf(value = "") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -89,7 +91,7 @@ fun SignUp(navController: NavController) {
             value = full_Name,
             maxLines = 1,
             textStyle = TextStyle(fontSize = 20.sp),
-            onValueChange = {full_Name = it },
+            onValueChange = { full_Name = it },
             placeholder = {
                 Text(text = "Name", color = Color.Gray, fontSize = 16.sp)
             },
@@ -109,7 +111,7 @@ fun SignUp(navController: NavController) {
             value = email,
             maxLines = 1,
             textStyle = TextStyle(fontSize = 20.sp),
-            onValueChange = {email= it },
+            onValueChange = { email = it },
             placeholder = {
                 Text(text = "Email", color = Color.Gray, fontSize = 16.sp)
             },
@@ -138,7 +140,7 @@ fun SignUp(navController: NavController) {
                 focusedIndicatorColor = Color.White,
                 unfocusedIndicatorColor = Color.White,
                 cursorColor = Color.White,
-                ),
+            ),
             modifier = Modifier
                 .padding(top = 360.dp, start = 40.dp, end = 40.dp)
                 .fillMaxWidth()
@@ -163,8 +165,12 @@ fun SignUp(navController: NavController) {
 
                 ),
             modifier = Modifier
-                .padding(top = 410.dp, start = 40.dp, end = 40.dp) // Added end padding for consistency
-                .fillMaxWidth() ,
+                .padding(
+                    top = 410.dp,
+                    start = 40.dp,
+                    end = 40.dp
+                ) // Added end padding for consistency
+                .fillMaxWidth(),
         )
 
 
@@ -188,17 +194,17 @@ fun SignUp(navController: NavController) {
                 unfocusedIndicatorColor = Color.White,
                 cursorColor = Color.White
             ),
-            modifier = Modifier.padding(top = 470.dp, start = 40.dp,end=40.dp)
-                .fillMaxWidth() ,
+            modifier = Modifier.padding(top = 470.dp, start = 40.dp, end = 40.dp)
+                .fillMaxWidth(),
         )
 
         if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
             Text(
-                text="Password does not match",
+                text = "Password does not match",
                 color = Color.Red,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 550.dp,start=45.dp)
+                modifier = Modifier.padding(top = 550.dp, start = 45.dp)
             )
         }
 
@@ -207,54 +213,89 @@ fun SignUp(navController: NavController) {
             //make the terms and conditions bold
             //find out how to do that
             //add a link to terms and conditions
-            text="I agree with the Terms & Conditions",
+            text = "I agree with the Terms & Conditions",
             color = colorResource(R.color.lightpurple),
             fontWeight = FontWeight.Bold,
-            modifier=Modifier.padding(top=578.dp,start=80.dp, end = 45.dp, bottom =10.dp)
+            modifier = Modifier.padding(top = 578.dp, start = 80.dp, end = 45.dp, bottom = 10.dp)
 
         )
-            Checkbox(
-                checked = checked,
-                onCheckedChange = { checked = it },
-                        colors = CheckboxDefaults.colors(
-                        checkedColor = colorResource(R.color.darkpurple),
-                        uncheckedColor = colorResource(R.color.darkpurple)
+        Checkbox(
+            checked = checked,
+            onCheckedChange = { checked = it },
+            colors = CheckboxDefaults.colors(
+                checkedColor = colorResource(R.color.darkpurple),
+                uncheckedColor = colorResource(R.color.darkpurple)
             ),
-                                modifier = Modifier.padding(top=570.dp,start =40.dp)
+            modifier = Modifier.padding(top = 570.dp, start = 40.dp)
 
-            )
-            //add checkbox next to terms and conditions
-            Button(
-                onClick = {try {
-                    val userId = UUID.randomUUID().toString()
-                    val fos: FileOutputStream =
-                        context.openFileOutput("login.txt", Context.MODE_APPEND)
-                    val entry = "$userId,$email,$username,$password\n"
-                    fos.write(entry .toByteArray())
-                    fos.flush()
-                    fos.close()
+        )
+        Button(
+            onClick = {
+                try {
+                    val existingUsers = mutableListOf<String>()
+                    val file = context.getFileStreamPath("login.txt")
+
+                    // Read existing usernames if file exists
+                    if (file.exists()) {
+                        context.openFileInput("login.txt").use { fis ->
+                            fis.bufferedReader().useLines { lines ->
+                                lines.forEach { line ->
+                                    val userDetails = line.split(",")
+                                    if (userDetails.size > 2) {
+                                        existingUsers.add(userDetails[2]) // Username is the 3rd element
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //validation for usernames
+                    when {
+                        username.isBlank() -> {
+                            Toast.makeText(context, "Username cannot be blank.", Toast.LENGTH_SHORT).show()
+                        }
+
+                        username in existingUsers -> {
+                            Toast.makeText(context, "Username already exists.", Toast.LENGTH_SHORT).show()
+                        }
+
+                        !checked -> {
+                            Toast.makeText(
+                                context,
+                                "Please agree to the Terms & Conditions.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                        else -> {
+                            // Save the new user data
+                            val userId = UUID.randomUUID().toString()
+                            val fos: FileOutputStream =
+                                context.openFileOutput("login.txt", Context.MODE_APPEND)
+                            val entry = "$userId,$email,$username,$password\n"
+                            fos.write(entry.toByteArray())
+                            fos.flush()
+                            fos.close()
+
+                            Toast.makeText(context, "Sign-up successful!", Toast.LENGTH_SHORT).show()
+                            navController.navigate("login_screen")
+                        }
+                    }
                 } catch (e: IOException) {
                     e.printStackTrace()
+                    Toast.makeText(context, "An error occurred.", Toast.LENGTH_SHORT).show()
                 }
-                    Toast.makeText(context, "Data saved successfully..", Toast.LENGTH_SHORT).show()
-
-                },
-                //should lead to reminder and goal page
-                //navController.navigate("goal_page")
-                //navController.navigate("
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = colorResource(R.color.darkpurple)),
-
-                modifier = Modifier
-                    .padding(top = 620.dp, start = 100.dp)
-                    .size(width = 200.dp, height = 45.dp),
-            ) {
-                    Text(text = "Sign up", color = Color.White, fontSize = 22.sp)
-
-                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = colorResource(R.color.darkpurple)
+            ),
+            modifier = Modifier
+                .padding(top = 620.dp, start = 100.dp)
+                .size(width = 200.dp, height = 45.dp),
+        ) {
+            Text(text = "Sign up", color = Color.White, fontSize = 22.sp)
         }
-}      //add checkbox right next to the terms & conditions
-// color = colorResource(R.color.darkpurple),
+    }
+}
 
 
 @Preview(showBackground = true, showSystemUi = true)

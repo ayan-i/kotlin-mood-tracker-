@@ -269,8 +269,17 @@ fun MoodGraph() {
         }
     }
 
+
     if (moodHistory.isEmpty()) {
-        Text("No mood history available", color = Color.White)
+        Text(
+            text = "Mood Count",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier.padding(top=25.dp,start=16.dp)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text("No mood history available", color = Color.White, fontSize = 17.sp, modifier = Modifier.padding(start=16.dp))
     } else {
         val allMoods = listOf("Joyful", "Happy", "Meh", "Bad", "Down")
         val barColors = listOf(
@@ -298,8 +307,9 @@ fun MoodGraph() {
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
+            modifier = Modifier.padding(top=25.dp,start=16.dp)
         )
-
+        Spacer(modifier = Modifier.padding(20.dp))
         Column(
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -308,8 +318,6 @@ fun MoodGraph() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(20.dp))
-
-
 
             BarGraph(
                 // get the mood counts from Moodentry1 list
@@ -364,7 +372,7 @@ fun overview(navController: NavController) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Overview") },
+                    title = { Text("Overview", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
                     backgroundColor = colorResource(R.color.lightpurple),
                     navigationIcon = {
                         IconButton(onClick = {
@@ -375,6 +383,7 @@ fun overview(navController: NavController) {
                             Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
                         }
                     },
+                    modifier = Modifier.padding(top = 25.dp)
                 )
             },
             content = { padding ->
@@ -386,15 +395,10 @@ fun overview(navController: NavController) {
                         .verticalScroll(scrollState)
                         .background(color = Color.Black)
                         .padding(padding)
+
                 ) {
                     // Mood Graph Section
-                    Text(
-                        text = "Mood Overview",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(16.dp)
-                    )
+
                     MoodGraph()
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -402,7 +406,7 @@ fun overview(navController: NavController) {
                     // Stress Pie Chart Section
                     Text(
                         text = "Stress Overview",
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         modifier = Modifier.padding(16.dp)
@@ -411,10 +415,11 @@ fun overview(navController: NavController) {
                         Text(
                             text = "No stress data available",
                             color = Color.White,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
+                            fontSize=17.sp
                         )
                     } else {
-                        StressPieChart(data = stressData)
+                        DrawStressPieChart(data = stressData)
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -422,7 +427,7 @@ fun overview(navController: NavController) {
                     // Anxiety Line Graph Section
                     Text(
                         text = "Anxiety Trends",
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         modifier = Modifier.padding(16.dp)
@@ -431,11 +436,13 @@ fun overview(navController: NavController) {
                         Text(
                             text = "No anxiety data available",
                             color = Color.White,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
+                            fontSize=17.sp
                         )
                     } else {
                         AnxietyLineChart1(data = anxietyData.value)
                     }
+                    Spacer(modifier = Modifier.padding(15.dp))
                 }
             },
             bottomBar = {
@@ -447,44 +454,44 @@ fun overview(navController: NavController) {
 
 
 
-@Composable
-fun AnxietyLineGraph() {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-    val userId = sharedPreferences.getString("userId", null)
-    var anxietyData by remember { mutableStateOf<List<Pair<Long, Int>>>(emptyList()) }
-
-    LaunchedEffect(userId) {
-        if (!userId.isNullOrEmpty()) {
-            anxietyData = readAnxietyData1(context, userId)
-        } else {
-            Log.e("AnxietyLineGraph", "Error: User ID is null or empty")
-        }
-    }
-
-    if (anxietyData.isEmpty()) {
-        Text("No anxiety data available", color = Color.White)
-    } else {
-        Text(
-            text = "Anxiety Trends",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-        )
-
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 30.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
-            AnxietyLineChart1(data = anxietyData)
-        }
-    }
-}
+//@Composable
+//fun AnxietyLineGraph() {
+//    val context = LocalContext.current
+//    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+//    val userId = sharedPreferences.getString("userId", null)
+//    var anxietyData by remember { mutableStateOf<List<Pair<Long, Int>>>(emptyList()) }
+//
+//    LaunchedEffect(userId) {
+//        if (!userId.isNullOrEmpty()) {
+//            anxietyData = readAnxietyData1(context, userId)
+//        } else {
+//            Log.e("AnxietyLineGraph", "Error: User ID is null or empty")
+//        }
+//    }
+//
+//    if (anxietyData.isEmpty()) {
+//        Text("No anxiety data available", color = Color.White)
+//    } else {
+//        Text(
+//            text = "Anxiety Trends",
+//            fontSize = 24.sp,
+//            fontWeight = FontWeight.Bold,
+//            color = Color.White,
+//        )
+//
+//        Column(
+//            modifier = Modifier
+//                .padding(horizontal = 30.dp)
+//                .fillMaxSize(),
+//            verticalArrangement = Arrangement.Top,
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Spacer(modifier = Modifier.height(20.dp))
+//
+//            AnxietyLineChart1(data = anxietyData)
+//        }
+//    }
+//}
 
 
 /**
@@ -576,10 +583,10 @@ fun AnxietyLineChart1(data: List<Pair<Long, Int>>) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .padding(16.dp),
+                .padding(30.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "No anxiety data available", color = Color.White)
+            Text(text = "No anxiety data available", color = Color.White, fontWeight = FontWeight.Bold)
         }
         return
     }
@@ -588,9 +595,11 @@ fun AnxietyLineChart1(data: List<Pair<Long, Int>>) {
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
-            .padding(16.dp)
+            .padding(20.dp)
+
     ) {
-        drawLineChartWithAxes(data, Color.Blue, Color.Red)
+        drawLineChartWithAxes(data, Color(0xFF64B5F6), Color.Red)
+
     }
 }
 
@@ -630,7 +639,7 @@ private fun DrawScope.drawLineChartWithAxes(
             color = lineColor,
             start = points[i],
             end = points[i + 1],
-            strokeWidth = 4f
+            strokeWidth = 6f
         )
     }
 
@@ -638,7 +647,7 @@ private fun DrawScope.drawLineChartWithAxes(
         drawCircle(
             color = pointColor,
             center = point,
-            radius = 6f
+            radius = 10f
         )
     }
 
@@ -655,7 +664,7 @@ private fun DrawScope.drawLineChartWithAxes(
         color = Color.White,
         start = androidx.compose.ui.geometry.Offset(0f, size.height),
         end = androidx.compose.ui.geometry.Offset(size.width, size.height),
-        strokeWidth = 2f
+        strokeWidth = 4f
     )
 
     // Add Y-axis labels
@@ -667,7 +676,9 @@ private fun DrawScope.drawLineChartWithAxes(
             yPosition,
             android.graphics.Paint().apply {
                 color = android.graphics.Color.WHITE
-                textSize = 30f
+                textSize = 40f
+                typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+
             }
         )
     }
@@ -683,10 +694,12 @@ private fun DrawScope.drawLineChartWithAxes(
         drawContext.canvas.nativeCanvas.drawText(
             dateLabel,
             xPosition,
-            size.height + 30f, // Position slightly below the axis
+            size.height + 40f, // Position slightly below the axis
             android.graphics.Paint().apply {
                 color = android.graphics.Color.WHITE
-                textSize = 30f
+                textSize = 40f
+                typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+
             }
         )
     }
@@ -735,53 +748,63 @@ fun readStressDataForPieChart(context: Context, userId: String): List<Pair<Strin
 
 
 
-@Composable
-fun StressPieChart() {
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-    val userId = sharedPreferences.getString("userId", null)
-    var stressData by remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
-
-    LaunchedEffect(userId) {
-        if (!userId.isNullOrEmpty()) {
-            stressData = readStressDataForPieChart(context, userId)
-        } else {
-            Log.e("StressPieChart", "Error: User ID is null or empty")
-        }
-    }
-
-    if (stressData.isEmpty()) {
-        Text("No stress data available", color = Color.White)
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Stress Overview",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            DrawStressPieChart(stressData)
-        }
-    }
-}
+//@Composable
+//fun StressPieChart() {
+//    val context = LocalContext.current
+//    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+//    val userId = sharedPreferences.getString("userId", null)
+//    var stressData by remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
+//
+//    LaunchedEffect(userId) {
+//        if (!userId.isNullOrEmpty()) {
+//            stressData = readStressDataForPieChart(context, userId)
+//        } else {
+//            Log.e("StressPieChart", "Error: User ID is null or empty")
+//        }
+//    }
+//
+//    if (stressData.isEmpty()) {
+//        Text("No stress data available", color = Color.White,fontSize = 40.sp)
+//    } else {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(16.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Text(
+//                text = "Stress Overview",
+//                fontSize = 24.sp,
+//                fontWeight = FontWeight.Bold,
+//                color = Color.White,
+//            )
+//            Spacer(modifier = Modifier.height(16.dp))
+//            DrawStressPieChart(stressData)
+//        }
+//    }
+//}
 
 @Composable
 fun DrawStressPieChart(data: List<Pair<String, Int>>) {
     val total = data.sumOf { it.second.toDouble() }.toFloat()
     val colors = listOf(
-        Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Magenta, Color.Cyan
-    )
 
+        Color(0xFF9575CD), // Purple
+        Color(0xFF4DD0E1), // Cyan
+        Color(0xFFFFD54F), // Amber
+        Color(0xFFA1887F), // Brownish Gray
+        Color(0xFFBA68C8) , // Lavender
+        Color(0xFF64B5F6), // Light Blue
+        Color(0xFF81C784), // Green
+        Color(0xFFFFEB3B), // Yellow
+        Color(0xFFFF7043), // Orange
+        Color(0xFFEF5350), // Red
+    )
     Canvas(
         modifier = Modifier
-            .fillMaxWidth()
+            .width(350.dp)
             .height(300.dp)
+            .padding(start=50.dp)
     ) {
         var startAngle = 0f
 
@@ -811,7 +834,8 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
                 y,
                 android.graphics.Paint().apply {
                     color = android.graphics.Color.BLACK
-                    textSize = 30f
+                    textSize = 40f
+                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
                     textAlign = android.graphics.Paint.Align.CENTER
                 }
             )
@@ -822,68 +846,68 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
 
 
 
-
-@Composable
-fun StressPieChart(data: List<Pair<String, Int>>) {
-    if (data.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("No stress data available", color = Color.White)
-        }
-        return
-    }
-
-    val total = data.sumOf { it.second.toDouble() }.toFloat()
-    val colors = listOf(
-        Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Magenta, Color.Cyan
-    )
-
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
-    ) {
-        var startAngle = 0f
-
-        data.forEachIndexed { index, entry ->
-            val sweepAngle = (entry.second / total) * 360f
-            drawArc(
-                color = colors[index % colors.size],
-                startAngle = startAngle,
-                sweepAngle = sweepAngle,
-                useCenter = true
-            )
-            startAngle += sweepAngle
-        }
-
-        // Add labels
-        startAngle = 0f
-        data.forEachIndexed { index, entry ->
-            val sweepAngle = (entry.second / total) * 360f
-            val angle = startAngle + sweepAngle / 2
-            val radius = size.minDimension / 3
-            val x = center.x + radius * cos(angle * PI / 180).toFloat()
-            val y = center.y + radius * sin(angle * PI / 180).toFloat()
-
-            drawContext.canvas.nativeCanvas.drawText(
-                entry.first,
-                x,
-                y,
-                android.graphics.Paint().apply {
-                    color = android.graphics.Color.BLACK
-                    textSize = 30f
-                    textAlign = android.graphics.Paint.Align.CENTER
-                }
-            )
-            startAngle += sweepAngle
-        }
-    }
-}
+//
+//@Composable
+//fun StressPieChart(data: List<Pair<String, Int>>) {
+//    if (data.isEmpty()) {
+//        Box(
+//            modifier = Modifier
+//                .width(50.dp)
+//                .height(250.dp)
+//                .padding(16.dp),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text("No stress data available", color = Color.White)
+//        }
+//        return
+//    }
+//
+//    val total = data.sumOf { it.second.toDouble() }.toFloat()
+//    val colors = listOf(
+//        Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Magenta, Color.Cyan
+//    )
+//
+//    Canvas(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(300.dp)
+//    ) {
+//        var startAngle = 0f
+//
+//        data.forEachIndexed { index, entry ->
+//            val sweepAngle = (entry.second / total) * 360f
+//            drawArc(
+//                color = colors[index % colors.size],
+//                startAngle = startAngle,
+//                sweepAngle = sweepAngle,
+//                useCenter = true
+//            )
+//            startAngle += sweepAngle
+//        }
+//
+//        // Add labels
+//        startAngle = 0f
+//        data.forEachIndexed { index, entry ->
+//            val sweepAngle = (entry.second / total) * 360f
+//            val angle = startAngle + sweepAngle / 2
+//            val radius = size.minDimension / 3
+//            val x = center.x + radius * cos(angle * PI / 180).toFloat()
+//            val y = center.y + radius * sin(angle * PI / 180).toFloat()
+//
+//            drawContext.canvas.nativeCanvas.drawText(
+//                entry.first,
+//                x,
+//                y,
+//                android.graphics.Paint().apply {
+//                    color = android.graphics.Color.BLACK
+//                    textSize = 30f
+//                    textAlign = android.graphics.Paint.Align.CENTER
+//                }
+//            )
+//            startAngle += sweepAngle
+//        }
+//    }
+//}
 
 //
 //@Preview(showBackground = true)

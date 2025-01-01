@@ -16,10 +16,8 @@ import androidx.compose.material.*
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,18 +26,13 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.painterResource
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.io.IOException
-import java.io.InputStream
 import android.util.Log
-import androidx.compose.ui.draw.shadow
-import java.io.FileInputStream
 import androidx.compose.animation.animateContentSize
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -268,7 +261,7 @@ fun Option(navController: NavController) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("History") },
+                    title = { Text("History",fontSize = 20.sp, fontWeight = FontWeight.Bold) },
                     backgroundColor = colorResource(R.color.lightpurple),
                     navigationIcon = {
                         IconButton(onClick = {

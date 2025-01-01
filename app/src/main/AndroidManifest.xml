@@ -38,13 +38,16 @@
             android:name=".MyApp"
             android:exported="true" />
         <activity
-            android:name=".overviewActivity"
+            android:name=".OverviewActivity"
             android:exported="true" />
         <activity
             android:name=".OptionActivity"
             android:exported="true" />
         <activity
             android:name=".MainPageActivity"
+            android:exported="true" />
+        <activity
+            android:name=".HelpLineActivity"
             android:exported="true" />
         <activity
             android:name=".MyAppActivity"

@@ -13,8 +13,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -27,6 +29,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,7 +48,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mobile.ui.theme.MobileTheme
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
+import java.io.FileNotFoundException
 import java.io.InputStreamReader
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.round
 
 class overviewActivity : ComponentActivity() {
@@ -318,17 +325,30 @@ fun MoodGraph() {
     }
 }
 
-
 @Composable
 fun overview(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     val context = LocalContext.current
-    val userId = UserSession.userId
+    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    val userId = sharedPreferences.getString("userId", null)
+
     systemUiController.setStatusBarColor(color = Color.Black)
-    systemUiController.setNavigationBarColor(color= colorResource(R.color.lightpurple))
+    systemUiController.setNavigationBarColor(color = colorResource(R.color.lightpurple))
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
+
+    val anxietyData = remember { mutableStateOf<List<Pair<Long, Int>>>(emptyList()) }
+
+    LaunchedEffect(userId) {
+        if (!userId.isNullOrEmpty()) {
+            anxietyData.value = readAnxietyData1(context, userId)
+            Log.d("AnxietyData", "Loaded anxiety data: ${anxietyData.value}")
+        } else {
+            Log.e("AnxietyLineGraph", "Error: User ID is null or empty")
+        }
+    }
+
 
     ModalDrawer(
         drawerState = drawerState,
@@ -348,43 +368,300 @@ fun overview(navController: NavController) {
                             Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
                         }
                     },
-                    modifier = Modifier.padding(top = 25.dp)
                 )
             },
             content = { padding ->
+                // Add vertical scroll state
+                val scrollState = rememberScrollState()
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(scrollState) // Enables vertical scrolling
                         .background(color = Color.Black)
                         .padding(padding)
                 ) {
-                    // Main Content of the Screen
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f) // Ensures content takes available space above the bottom bar
-                            .background(color = Color.Black)
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            MoodGraph()
-                        }
+                    // Mood Graph Section
+                    MoodGraph()
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Anxiety Line Graph Section
+                    Text(
+                        text = "Anxiety Trends",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    if (anxietyData.value.isEmpty()) {
+                        Text(
+                            text = "No anxiety data available",
+                            color = Color.White,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        // Display the line graph
+                        AnxietyLineChart1(data = anxietyData.value)
                     }
                 }
             },
             bottomBar = {
-                BottomNavigationBar(
-                    navController = navController,
-                )
+                BottomNavigationBar(navController)
             }
         )
     }
 }
 
-            @Composable
+
+
+@Composable
+fun AnxietyLineGraph() {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    val userId = sharedPreferences.getString("userId", null)
+    var anxietyData by remember { mutableStateOf<List<Pair<Long, Int>>>(emptyList()) }
+
+    LaunchedEffect(userId) {
+        if (!userId.isNullOrEmpty()) {
+            anxietyData = readAnxietyData1(context, userId)
+        } else {
+            Log.e("AnxietyLineGraph", "Error: User ID is null or empty")
+        }
+    }
+
+    if (anxietyData.isEmpty()) {
+        Text("No anxiety data available", color = Color.White)
+    } else {
+        Text(
+            text = "Anxiety Trends",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+        )
+
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 30.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            AnxietyLineChart1(data = anxietyData)
+        }
+    }
+}
+
+
+/**
+ * Reads anxiety data from a file and returns a list of (timestamp, anxietyLevel) pairs.
+ */
+fun readAnxietyData1(context: Context, userID: String): List<Pair<Long, Int>> {
+    val filename = "anxiety_data.txt"
+    val dataList = mutableListOf<Pair<Long, Int>>()
+
+    try {
+        val fileInputStream = context.openFileInput(filename)
+        val reader = BufferedReader(InputStreamReader(fileInputStream))
+
+        var currentId: String? = null
+        var currentDate: String? = null
+        var currentLevel: String? = null
+
+        reader.forEachLine { line ->
+            when {
+                line.startsWith("ID: ") -> {
+                    currentId = line.substringAfter("ID: ").trim()
+                    Log.d("AnxietyData", "Parsed ID: $currentId")
+                }
+                line.startsWith("Date: ") -> {
+                    currentDate = line.substringAfter("Date: ").trim()
+                    Log.d("AnxietyData", "Parsed Date: $currentDate")
+                }
+                line.startsWith("Level: ") -> {
+                    currentLevel = line.substringAfter("Level: ").trim()
+                    Log.d("AnxietyData", "Parsed Level: $currentLevel")
+                }
+                line.startsWith("Notes: ") -> {
+                    if (currentId == userID && currentDate != null && currentLevel != null) {
+                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                        val timestamp = dateFormat.parse(currentDate)?.time
+                        val level = convertAnxietyLevelToNumber1(currentLevel!!)
+
+                        if (timestamp != null && level != null) {
+                            dataList.add(timestamp to level)
+                            Log.d("AnxietyData", "Added data - Timestamp: $timestamp, Level: $level")
+                        } else {
+                            Log.e("AnxietyData", "Failed to parse timestamp or level")
+                        }
+                    } else {
+                        Log.w(
+                            "AnxietyData",
+                            "Skipped entry - UserID: $currentId, Date: $currentDate, Level: $currentLevel"
+                        )
+                    }
+
+                    // Reset fields for the next entry
+                    currentId = null
+                    currentDate = null
+                    currentLevel = null
+                }
+            }
+        }
+    } catch (e: FileNotFoundException) {
+        Log.e("FileCheck", "anxiety_data.txt not found")
+    } catch (e: Exception) {
+        Log.e("ReadDataError", "Error reading anxiety data", e)
+    }
+
+    // Log the final list of parsed data
+    dataList.forEach { Log.d("FinalAnxietyData", "Timestamp: ${it.first}, Level: ${it.second}") }
+
+    return dataList.reversed() // Return in reverse chronological order
+}
+
+
+
+fun convertAnxietyLevelToNumber1(level: String): Int? {
+    val levels = listOf(
+        "Not Anxious", "Very Bad", "Bad", "Anxiety Comes and Goes",
+        "Mild Anxiety", "Anxiety Triggered", "Anxious but Survive",
+        "Constant Fidgeting", "Anxiety Attack", "Panic Attack"
+    )
+    return levels.indexOf(level).takeIf { it != -1 }
+}
+
+
+/**
+ * Draws a line chart based on anxiety data with labelled axes.
+ */
+@Composable
+fun AnxietyLineChart1(data: List<Pair<Long, Int>>) {
+    if (data.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "No anxiety data available", color = Color.White)
+        }
+        return
+    }
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(16.dp)
+    ) {
+        drawLineChartWithAxes(data, Color.Blue, Color.Red)
+    }
+}
+
+/**
+ * Helper function to draw the chart inside the Canvas with axes and labels.
+ */
+private fun DrawScope.drawLineChartWithAxes(
+    data: List<Pair<Long, Int>>,
+    lineColor: Color,
+    pointColor: Color
+) {
+    val maxX = data.maxOfOrNull { it.first } ?: 1L
+    val minX = data.minOfOrNull { it.first } ?: 0L
+    val maxY = 10 // Fixed Y-axis max value
+    val minY = 0 // Fixed Y-axis min value
+
+    val xScale = size.width / (maxX - minX).toFloat()
+    val yScale = size.height / (maxY - minY).toFloat()
+
+    val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault()) // Format for X-axis labels
+
+    Log.d("LineChartScale", "X-Axis Range: $minX to $maxX, Y-Axis Range: $minY to $maxY") // Debugging
+
+    val points = data.map { (x, y) ->
+        androidx.compose.ui.geometry.Offset(
+            x = (x - minX) * xScale,
+            y = size.height - (y - minY) * yScale
+        )
+    }
+
+    points.forEach { point ->
+        Log.d("LineChartPoints", "Point: $point") // Debugging
+    }
+
+    for (i in 0 until points.size - 1) {
+        drawLine(
+            color = lineColor,
+            start = points[i],
+            end = points[i + 1],
+            strokeWidth = 4f
+        )
+    }
+
+    points.forEach { point ->
+        drawCircle(
+            color = pointColor,
+            center = point,
+            radius = 6f
+        )
+    }
+
+    // Draw Y-axis
+    drawLine(
+        color = Color.White,
+        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+        end = androidx.compose.ui.geometry.Offset(0f, size.height),
+        strokeWidth = 2f
+    )
+
+    // Draw X-axis
+    drawLine(
+        color = Color.White,
+        start = androidx.compose.ui.geometry.Offset(0f, size.height),
+        end = androidx.compose.ui.geometry.Offset(size.width, size.height),
+        strokeWidth = 2f
+    )
+
+    // Add Y-axis labels
+    for (i in minY..maxY) {
+        val yPosition = size.height - (i - minY) * yScale
+        drawContext.canvas.nativeCanvas.drawText(
+            "$i",
+            -30f, // Position slightly to the left of the axis
+            yPosition,
+            android.graphics.Paint().apply {
+                color = android.graphics.Color.WHITE
+                textSize = 30f
+            }
+        )
+    }
+
+    // Add X-axis labels
+    val numberOfLabels = 5 // Number of labels to show on the X-axis
+    val interval = (maxX - minX) / numberOfLabels
+    for (i in 0..numberOfLabels) {
+        val xValue = minX + i * interval
+        val xPosition = (xValue - minX) * xScale
+        val dateLabel = dateFormat.format(Date(xValue))
+
+        drawContext.canvas.nativeCanvas.drawText(
+            dateLabel,
+            xPosition,
+            size.height + 30f, // Position slightly below the axis
+            android.graphics.Paint().apply {
+                color = android.graphics.Color.WHITE
+                textSize = 30f
+            }
+        )
+    }
+}
+
+
+@Composable
 fun BottomNavigationBar(navController: NavController) {
     BottomNavigation(
         backgroundColor = colorResource(R.color.lightpurple),
@@ -461,21 +738,21 @@ fun DrawerContent(navController: NavController, context: Context) {
             .background(color = colorResource(R.color.lightpurple))
             .padding(16.dp)
     ) {
-    Text(
-        text = "Navigation Menu",
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-    color = Color.Black,
-    modifier = Modifier.padding(top= 20.dp,bottom = 10.dp)
-    )
-    Divider(color = Color.Black, thickness = 1.dp)
+        Text(
+            text = "Navigation Menu",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            modifier = Modifier.padding(top= 20.dp,bottom = 10.dp)
+        )
+        Divider(color = Color.Black, thickness = 1.dp)
 
-    DrawerItem("overview", Icons.Default.Dashboard) { navController.navigate("overview_screen") }
-    DrawerItem("Advice", Icons.Default.Phone) { navController.navigate("advice_screen") }
-    DrawerItem("Mood", Icons.Default.AddCircle) { navController.navigate("mood_screen") }
-    DrawerItem("Stress Level", Icons.Default.BatteryAlert) { navController.navigate("stress_screen") }
-    DrawerItem("Anxiety Level", Icons.Default.Warning) { navController.navigate("anxiety_screen") }
-    DrawerItem("Logout", Icons.Default.Logout) { logout(navController, context) }
+        DrawerItem("overview", Icons.Default.Dashboard) { navController.navigate("overview_screen") }
+        DrawerItem("Advice", Icons.Default.Phone) { navController.navigate("advice_screen") }
+        DrawerItem("Mood", Icons.Default.AddCircle) { navController.navigate("mood_screen") }
+        DrawerItem("Stress Level", Icons.Default.BatteryAlert) { navController.navigate("stress_screen") }
+        DrawerItem("Anxiety Level", Icons.Default.Warning) { navController.navigate("anxiety_screen") }
+        DrawerItem("Logout", Icons.Default.Logout) { logout(navController, context) }
     }
 }
 
@@ -487,10 +764,10 @@ fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
             .clickable { onClick() }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
-) {
-    Icon(
-        imageVector = icon,
-        contentDescription = label,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
             tint = Color.White,
             modifier = Modifier.size(24.dp)
         )
@@ -504,16 +781,18 @@ fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
     }
 }
 
-
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
-fun overview2() {
-    MobileTheme {
-        val navController = rememberNavController()
-        overview(navController = navController)
-
-    }
+fun AnxietyLineChartPreview() {
+    AnxietyLineChart1(
+        data = listOf(
+            1672531200000L to 5, // Example timestamp and level
+            1672617600000L to 7,
+            1672704000000L to 3
+        )
+    )
 }
+
 
 
 //@Preview(showBackground = true)

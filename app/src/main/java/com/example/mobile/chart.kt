@@ -330,4 +330,6 @@ fun BarChartPreview() {
 }
 //hello
 
-
+//make a function to read from the anxiety file and create it as a list in the same function
+//make  function to make the graph
+// make a preview function to test out dummy data in the graph

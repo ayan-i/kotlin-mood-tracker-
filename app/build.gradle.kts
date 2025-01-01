@@ -104,6 +104,9 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.1.1")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation("androidx.navigation:navigation-compose:2.7.2")
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+
 
 }
 

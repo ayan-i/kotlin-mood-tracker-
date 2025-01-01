@@ -131,19 +131,26 @@ fun Mood(navController: NavController) {
             }
         }
         Button(
-            //internal storage from geeksforgeeks
-            onClick = {try {
-                val fos: FileOutputStream =
-                    context.openFileOutput("moodSELECT.txt", Context.MODE_APPEND)
-                val entry = "$userId,$currentDateTime,$selectedMood\n"
-                fos.write(entry .toByteArray())
-                fos.flush()
-                fos.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-                Toast.makeText(context, "Data saved successfully..", Toast.LENGTH_SHORT).show()
-                navController.navigateUp()
+            onClick = {
+                //internal storage from geeksforgeeks
+                // Check if a mood is selected
+                if (selectedMood.isNotEmpty()) {
+                    try {
+                        val fos: FileOutputStream =
+                            context.openFileOutput("moodSELECT.txt", Context.MODE_APPEND)
+                        val entry = "$userId,$currentDateTime,$selectedMood\n"
+                        fos.write(entry.toByteArray())
+                        fos.flush()
+                        fos.close()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                    Toast.makeText(context, "Data saved successfully..", Toast.LENGTH_SHORT).show()
+                    navController.navigateUp()
+                } else {
+                    // Show a message if none is chosen doesnt let you continye
+                    Toast.makeText(context, "Please select a mood first.", Toast.LENGTH_SHORT).show()
+                }
             },
             colors = ButtonDefaults.buttonColors(
                 backgroundColor = colorResource(R.color.darkpurple)
@@ -159,6 +166,7 @@ fun Mood(navController: NavController) {
                 fontWeight = FontWeight.Bold
             )
         }
+
         Text(
             text = if (selectedMood.isNotEmpty()) "$selectedMood" else "",
             color = colorResource(R.color.lightpurple),

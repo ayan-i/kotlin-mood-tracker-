@@ -210,9 +210,6 @@ fun SignUp(navController: NavController) {
 
 
         Text(
-            //make the terms and conditions bold
-            //find out how to do that
-            //add a link to terms and conditions
             text = "I agree with the Terms & Conditions",
             color = colorResource(R.color.lightpurple),
             fontWeight = FontWeight.Bold,
@@ -250,12 +247,23 @@ fun SignUp(navController: NavController) {
                     }
                     //validation for usernames
                     when {
+                        full_Name.isBlank() -> {
+                            Toast.makeText(context, "Name cannot be blank.", Toast.LENGTH_SHORT).show()
+                        }
+                        !email.contains("@") -> {
+                            Toast.makeText(context, "Invalid email address.", Toast.LENGTH_SHORT).show()
+                        }
                         username.isBlank() -> {
                             Toast.makeText(context, "Username cannot be blank.", Toast.LENGTH_SHORT).show()
                         }
-
+                        password.isBlank() -> {
+                            Toast.makeText(context, "Password cannot be blank.", Toast.LENGTH_SHORT).show()
+                        }
+                        confirmPassword.isBlank() -> {
+                            Toast.makeText(context, "Confirm password cannot be blank.", Toast.LENGTH_SHORT).show()
+                        }
                         username in existingUsers -> {
-                            Toast.makeText(context, "Username already exists.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Username already exists.", Toast.LENGTH_SHORT).show()
                         }
 
                         !checked -> {
@@ -265,6 +273,7 @@ fun SignUp(navController: NavController) {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+
 
                         else -> {
                             // Save the new user data
@@ -306,4 +315,4 @@ fun GreetingPreview() {
                 ())
     }
 }
-//hello
+//hello1

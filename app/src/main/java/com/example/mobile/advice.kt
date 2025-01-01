@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Phone
@@ -60,6 +62,17 @@ fun HelpLine(navController: NavController) {
             .fillMaxWidth()
             .verticalScroll(scrollState) // Make content scrollable
     ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Back",
+            modifier = Modifier
+                .size(48.dp)
+                .padding(top=20.dp,start=15.dp)
+                .clickable {
+                    navController.navigate(route = "overview_screen")
+                },
+            tint = Color.Black
+        )
         // Full-width Image Section
         Image(
             painter = painterResource(id = R.drawable.uwe),

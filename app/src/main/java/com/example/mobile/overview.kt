@@ -1,7 +1,6 @@
 package com.example.mobile
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -12,7 +11,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,15 +18,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -38,14 +31,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.mobile.ui.theme.MobileTheme
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.FileNotFoundException
@@ -54,8 +45,19 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.round
+import android.graphics.Paint
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
-class overviewActivity : ComponentActivity() {
+
+class OverviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -339,15 +341,20 @@ fun overview(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
     val anxietyData = remember { mutableStateOf<List<Pair<Long, Int>>>(emptyList()) }
+    val stressData = remember { mutableStateListOf<Pair<String, Int>>() }
 
+    // Load data for anxiety and stress
     LaunchedEffect(userId) {
         if (!userId.isNullOrEmpty()) {
             anxietyData.value = readAnxietyData1(context, userId)
-            Log.d("AnxietyData", "Loaded anxiety data: ${anxietyData.value}")
+            stressData.clear()
+            stressData.addAll(readStressDataForPieChart(context, userId).toList()) // Explicit conversion
+            Log.d("Overview", "Loaded data for user: $userId")
         } else {
-            Log.e("AnxietyLineGraph", "Error: User ID is null or empty")
+            Log.e("Overview", "Error: User ID is null or empty")
         }
     }
+
 
 
     ModalDrawer(
@@ -371,18 +378,44 @@ fun overview(navController: NavController) {
                 )
             },
             content = { padding ->
-                // Add vertical scroll state
                 val scrollState = rememberScrollState()
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(scrollState) // Enables vertical scrolling
+                        .verticalScroll(scrollState)
                         .background(color = Color.Black)
                         .padding(padding)
                 ) {
                     // Mood Graph Section
+                    Text(
+                        text = "Mood Overview",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
+                    )
                     MoodGraph()
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Stress Pie Chart Section
+                    Text(
+                        text = "Stress Overview",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    if (stressData.isEmpty()) {
+                        Text(
+                            text = "No stress data available",
+                            color = Color.White,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        StressPieChart(data = stressData)
+                    }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
@@ -401,7 +434,6 @@ fun overview(navController: NavController) {
                             modifier = Modifier.padding(16.dp)
                         )
                     } else {
-                        // Display the line graph
                         AnxietyLineChart1(data = anxietyData.value)
                     }
                 }
@@ -659,6 +691,215 @@ private fun DrawScope.drawLineChartWithAxes(
         )
     }
 }
+
+
+
+data class StressEntry2(val userId: String, val stressLevel: String, val count: Int = 0)
+
+fun readStressDataForPieChart(context: Context, userId: String): List<Pair<String, Int>> {
+    val filename = "stress_history.txt"
+    val stressCounts = mutableMapOf<String, Int>()
+
+    try {
+        val fileInputStream = context.openFileInput(filename)
+        val reader = BufferedReader(InputStreamReader(fileInputStream))
+
+        var currentId: String? = null
+        var currentLevel: String? = null
+
+        reader.forEachLine { line ->
+            when {
+                line.startsWith("ID: ") -> {
+                    currentId = line.substringAfter("ID: ").trim()
+                }
+                line.startsWith("Level: ") -> {
+                    currentLevel = line.substringAfter("Level: ").trim()
+                }
+                line.startsWith("Notes: ") -> {
+                    if (currentId == userId && currentLevel != null) {
+                        val count = stressCounts[currentLevel] ?: 0
+                        stressCounts[currentLevel!!] = count + 1
+                    }
+                    // Reset fields for the next entry
+                    currentId = null
+                    currentLevel = null
+                }
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("StressData", "Error reading stress data", e)
+    }
+
+    return stressCounts.toList()
+}
+
+
+
+@Composable
+fun StressPieChart() {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    val userId = sharedPreferences.getString("userId", null)
+    var stressData by remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
+
+    LaunchedEffect(userId) {
+        if (!userId.isNullOrEmpty()) {
+            stressData = readStressDataForPieChart(context, userId)
+        } else {
+            Log.e("StressPieChart", "Error: User ID is null or empty")
+        }
+    }
+
+    if (stressData.isEmpty()) {
+        Text("No stress data available", color = Color.White)
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Stress Overview",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            DrawStressPieChart(stressData)
+        }
+    }
+}
+
+@Composable
+fun DrawStressPieChart(data: List<Pair<String, Int>>) {
+    val total = data.sumOf { it.second.toDouble() }.toFloat()
+    val colors = listOf(
+        Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Magenta, Color.Cyan
+    )
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+    ) {
+        var startAngle = 0f
+
+        data.forEachIndexed { index, entry ->
+            val sweepAngle = (entry.second / total) * 360f
+            drawArc(
+                color = colors[index % colors.size],
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                useCenter = true
+            )
+            startAngle += sweepAngle
+        }
+
+        // Add labels
+        startAngle = 0f
+        data.forEachIndexed { index, entry ->
+            val sweepAngle = (entry.second / total) * 360f
+            val angle = startAngle + sweepAngle / 2
+            val radius = size.minDimension / 3
+            val x = center.x + radius * cos(angle * PI / 180).toFloat()
+            val y = center.y + radius * sin(angle * PI / 180).toFloat()
+
+            drawContext.canvas.nativeCanvas.drawText(
+                entry.first,
+                x,
+                y,
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.BLACK
+                    textSize = 30f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
+            startAngle += sweepAngle
+        }
+    }
+}
+
+
+
+
+@Composable
+fun StressPieChart(data: List<Pair<String, Int>>) {
+    if (data.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No stress data available", color = Color.White)
+        }
+        return
+    }
+
+    val total = data.sumOf { it.second.toDouble() }.toFloat()
+    val colors = listOf(
+        Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Magenta, Color.Cyan
+    )
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+    ) {
+        var startAngle = 0f
+
+        data.forEachIndexed { index, entry ->
+            val sweepAngle = (entry.second / total) * 360f
+            drawArc(
+                color = colors[index % colors.size],
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                useCenter = true
+            )
+            startAngle += sweepAngle
+        }
+
+        // Add labels
+        startAngle = 0f
+        data.forEachIndexed { index, entry ->
+            val sweepAngle = (entry.second / total) * 360f
+            val angle = startAngle + sweepAngle / 2
+            val radius = size.minDimension / 3
+            val x = center.x + radius * cos(angle * PI / 180).toFloat()
+            val y = center.y + radius * sin(angle * PI / 180).toFloat()
+
+            drawContext.canvas.nativeCanvas.drawText(
+                entry.first,
+                x,
+                y,
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.BLACK
+                    textSize = 30f
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+            )
+            startAngle += sweepAngle
+        }
+    }
+}
+
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewStressPieChart1() {
+//    val dummyData = listOf(
+//        StressEntry2(userId = "1", stressLevel = "Overwhelmed", count = "5"),
+//        StressEntry2(userId = "1", stressLevel = "Calm", count = "10"),
+//        StressEntry2(userId = "1", stressLevel = "Content", count = "7")
+//    )
+//
+//    // Transform dummyData into a List<Pair<String, Int>>
+//    val transformedData = dummyData.map { it.stressLevel to it.count.toInt() }
+//
+//    StressPieChart(data = transformedData)
+//}
 
 
 @Composable

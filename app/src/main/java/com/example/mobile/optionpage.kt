@@ -43,6 +43,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import kotlin.math.abs
+
 
 class OptionActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +57,7 @@ class OptionActivity : ComponentActivity() {
 }
 
 data class MoodEntry(val date: String, val mood: String)
-data class StressEntry(val date:String,val stressLevel:String,val Notes:String)
+data class StressEntry21(val date:String,val stressLevel:String,val Notes:String)
 data class AnxietyEntry(val date:String,val anxietyLevel:String,val Notes:String)
 
 data class CombinedEntry(
@@ -103,7 +105,7 @@ fun readMoodHistory(context: Context, userId: String): List<MoodEntry> {
     }
 }
 
-fun readStressHistory(context: Context, userId: String): List<StressEntry> {
+fun readStressHistory(context: Context, userId: String): List<StressEntry21> {
     return try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) // Original format
         val outputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault()) // Desired format
@@ -120,7 +122,7 @@ fun readStressHistory(context: Context, userId: String): List<StressEntry> {
                 if (id == userId) {
                     val date = inputFormat.parse(stored_date)
                     val formattedDate = if (date != null) outputFormat.format(date) else stored_date
-                    StressEntry(formattedDate, level, notes)
+                    StressEntry21(formattedDate, level, notes)
                 } else {
                     null
                 }
@@ -170,7 +172,7 @@ fun readAnxietyHistory(context: Context, userId: String): List<AnxietyEntry> {
 //go back to it and rework it
 fun mergeEntries(
     moodEntries: List<MoodEntry>,
-    stressEntries: List<StressEntry>,
+    stressEntries: List<StressEntry21>,
     anxietyEntries: List<AnxietyEntry>
 ): List<CombinedEntry> {
     val inputFormat = SimpleDateFormat("EEEE MMM d - HH:mm", Locale.getDefault())
@@ -220,7 +222,7 @@ fun mergeEntries(
 private fun timeDiff(date1: String, date2: String, format: SimpleDateFormat): Long {
     val time1 = format.parse(date1)?.time ?: Long.MAX_VALUE
     val time2 = format.parse(date2)?.time ?: 0L
-    return kotlin.math.abs(time1 - time2)
+    return abs(time1 - time2)
 }
 
 @Composable
@@ -237,7 +239,7 @@ fun Option(navController: NavController) {
     // Retrieve userId from shared preferences
     val userId = sharedPreferences.getString("userId", null)
     var moodHistory by remember { mutableStateOf<List<MoodEntry>>(emptyList()) }
-    var stressHistory by remember { mutableStateOf<List<StressEntry>>(emptyList()) }
+    var stressHistory by remember { mutableStateOf<List<StressEntry21>>(emptyList()) }
     var anxietyHistory by remember { mutableStateOf<List<AnxietyEntry>>(emptyList()) }
     var combinedHistory by remember { mutableStateOf<List<CombinedEntry>>(emptyList()) }
 

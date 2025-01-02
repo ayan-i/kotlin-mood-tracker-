@@ -568,8 +568,8 @@ fun MoodHistoryCard(entry: CombinedEntry) {
 
             }
         }
-        }
     }
+}
 
 
 

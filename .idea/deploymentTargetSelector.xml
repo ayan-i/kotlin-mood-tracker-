@@ -24,7 +24,7 @@
       <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="OverviewActivity">
+      <SelectionState runConfigName="StressLevel">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

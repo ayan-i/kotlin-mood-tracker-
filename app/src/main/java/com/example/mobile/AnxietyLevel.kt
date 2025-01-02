@@ -157,23 +157,31 @@ fun AnxietyScreen(navController: NavController) {
             // Submit button
             Button(
                 onClick = {
-                    // Save the entered data
-                    saveAnxietyData(
-                        level = currentSelectedAnxietyLevel,
-                        notes = currentFeelingNotes,
-                        context = navController.context
-                    )
-                    coroutineScope.launch {
-                        // Show snackbar confirmation
-                        snackbarHostState.showSnackbar("Data submitted successfully!")
+                    // Ensure an anxiety level is selected
+                    if (currentSelectedAnxietyLevel.isEmpty() || currentSelectedAnxietyLevel == "Not Selected") {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Please select an anxiety level before continuing.")
+                        }
+                    } else {
+                        // Save the entered data
+                        saveAnxietyData(
+                            level = currentSelectedAnxietyLevel,
+                            notes = currentFeelingNotes, // Notes remain optional
+                            context = navController.context
+                        )
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Data submitted successfully!") // Show confirmation
+                        }
+                        focusManager.clearFocus() // Clear keyboard focus
+                        navController.navigateUp() // Navigate back after submission
                     }
-                    focusManager.clearFocus() // Clear keyboard focus
-                    navController.navigateUp() // Navigate back after submission
                 },
                 modifier = Modifier.fillMaxWidth() // Make button fill the width
             ) {
                 Text("Submit") // Button label
             }
+
+
         }
 
         // Dialog for showing the selected level description

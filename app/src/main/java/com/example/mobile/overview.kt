@@ -1017,6 +1017,7 @@ fun DrawerContent(navController: NavController, context: Context) {
         DrawerItem("Mood", Icons.Default.AddCircle) { navController.navigate("mood_screen") }
         DrawerItem("Stress Level", Icons.Default.BatteryAlert) { navController.navigate("stress_screen") }
         DrawerItem("Anxiety Level", Icons.Default.Warning) { navController.navigate("anxiety_screen") }
+        DrawerItem("Reminder Activity", Icons.Default.Warning) { navController.navigate("reminder_screen") }
         DrawerItem("Logout", Icons.Default.Logout) { logout(navController, context) }
     }
 }

@@ -1,19 +1,21 @@
 package com.example.mobile
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.media.RingtoneManager
+import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -40,13 +42,16 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 class ReminderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MobileTheme {
-                ReminderScreen()
+                val navController = rememberNavController()
+                ReminderScreen(navController)
             }
         }
     }
@@ -54,8 +59,7 @@ class ReminderActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReminderScreen() {
-    // System UI Controller for setting system bar colours
+fun ReminderScreen(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Black)
     systemUiController.setNavigationBarColor(color = Color.Black)
@@ -66,12 +70,23 @@ fun ReminderScreen() {
     var vibrationEnabled by remember { mutableStateOf(false) }
     var soundEnabled by remember { mutableStateOf(false) }
 
-    // Time Picker Dialog to set the reminder time
+    val sharedPreferences = context.getSharedPreferences("ReminderPrefs", Context.MODE_PRIVATE)
+    val savedMessage = sharedPreferences.getString("reminderMessage", "")
+    val savedVibration = sharedPreferences.getBoolean("vibrationEnabled", false)
+    val savedSound = sharedPreferences.getBoolean("soundEnabled", false)
+
+    LaunchedEffect(Unit) {
+        reminderMessage = savedMessage.orEmpty()
+        vibrationEnabled = savedVibration
+        soundEnabled = savedSound
+    }
+
     val calendar = Calendar.getInstance()
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hour: Int, minute: Int ->
-            selectedTime = String.format("%02d:%02d", hour, minute)
+            selectedTime = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+
         },
         calendar.get(Calendar.HOUR_OF_DAY),
         calendar.get(Calendar.MINUTE),
@@ -79,7 +94,6 @@ fun ReminderScreen() {
     )
 
     fun saveSettings(message: String, vibration: Boolean, sound: Boolean) {
-        val sharedPreferences: SharedPreferences = context.getSharedPreferences("ReminderPrefs", Context.MODE_PRIVATE)
         with(sharedPreferences.edit()) {
             putString("reminderMessage", message)
             putBoolean("vibrationEnabled", vibration)
@@ -88,8 +102,15 @@ fun ReminderScreen() {
         }
     }
 
+    @SuppressLint("ScheduleExactAlarm")
     fun scheduleNotification(hour: Int, minute: Int, message: String, vibration: Boolean, sound: Boolean) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        if (message.isBlank()) {
+            Toast.makeText(context, "Reminder message cannot be empty.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             putExtra("reminderMessage", message)
             putExtra("vibrationEnabled", vibration)
@@ -108,38 +129,22 @@ fun ReminderScreen() {
             set(Calendar.SECOND, 0)
         }
 
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, notificationTime.timeInMillis, pendingIntent)
+        alarmManager.setAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            notificationTime.timeInMillis,
+            pendingIntent
+        )
         Toast.makeText(context, "Reminder set for $selectedTime", Toast.LENGTH_SHORT).show()
     }
 
-    // Function to snooze the reminder
-    fun snoozeReminder(snoozeMinutes: Int) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val snoozeTime = Calendar.getInstance().apply {
-            add(Calendar.MINUTE, snoozeMinutes)
-        }
-        val intent = Intent(context, ReminderReceiver::class.java).apply {
-            putExtra("reminderMessage", reminderMessage)
-            putExtra("vibrationEnabled", vibrationEnabled)
-            putExtra("soundEnabled", soundEnabled)
-        }
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, snoozeTime.timeInMillis, pendingIntent)
-        Toast.makeText(context, "Reminder snoozed for $snoozeMinutes minutes", Toast.LENGTH_SHORT).show()
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .padding(16.dp)
-            .padding(top = 32.dp) // Added padding to bring the content down
-            .verticalScroll(rememberScrollState()), // Enable vertical scrolling for the entire content
+            .padding(top = 32.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -159,9 +164,8 @@ fun ReminderScreen() {
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp)) // Space between elements
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Time Picker Button
         OutlinedButton(
             onClick = { timePickerDialog.show() },
             colors = ButtonDefaults.outlinedButtonColors(
@@ -197,7 +201,7 @@ fun ReminderScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp)) // Space before next section
+        Spacer(modifier = Modifier.height(24.dp))
 
         TextField(
             value = reminderMessage,
@@ -214,7 +218,7 @@ fun ReminderScreen() {
                 .background(Color.White)
         )
 
-        Spacer(modifier = Modifier.height(24.dp)) // Space before switches
+        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -234,7 +238,7 @@ fun ReminderScreen() {
             Switch(checked = soundEnabled, onCheckedChange = { soundEnabled = it })
         }
 
-        Spacer(modifier = Modifier.height(24.dp)) // Space before final button
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
@@ -255,13 +259,12 @@ fun ReminderScreen() {
                 .padding(vertical = 4.dp)
         ) {
             Text(
-                text = "Record your mood for today",
+                text = "Set Reminder",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        // "Record it later?" and "Snooze" options
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(top = 8.dp)
@@ -273,31 +276,75 @@ fun ReminderScreen() {
                     fontSize = 14.sp
                 )
             }
-            TextButton(onClick = { snoozeReminder(10) }) {
+            TextButton(onClick = { snoozeReminder(context, 10) }) {
                 Text(
                     text = "Snooze for 10 min",
                     color = Color(0xFFB18AFF),
                     fontSize = 14.sp
                 )
             }
+
         }
     }
 }
 
+fun snoozeReminder(context: Context, snoozeMinutes: Int) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+    val snoozeTime = Calendar.getInstance().apply {
+        add(Calendar.MINUTE, snoozeMinutes)
+    }
+
+    val intent = Intent(context, ReminderReceiver::class.java).apply {
+        putExtra("reminderMessage", "Snoozed Reminder")
+        putExtra("vibrationEnabled", true)
+        putExtra("soundEnabled", true)
+    }
+    val pendingIntent = PendingIntent.getBroadcast(
+        context,
+        0,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, snoozeTime.timeInMillis, pendingIntent)
+    Toast.makeText(context, "Reminder snoozed for $snoozeMinutes minutes", Toast.LENGTH_SHORT).show()
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun onReceive(context: Context, intent: Intent) {
+    val reminderMessage = intent.getStringExtra("reminderMessage") ?: "Remember to check in!"
+    val vibrationEnabled = intent.getBooleanExtra("vibrationEnabled", false)
+    val soundEnabled = intent.getBooleanExtra("soundEnabled", false)
+
+    if (vibrationEnabled) {
+        val vibrator = context.getSystemService(Vibrator::class.java)
+        vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    if (soundEnabled) {
+        val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        RingtoneManager.getRingtone(context, notificationSound)?.play()
+    }
+
+    Toast.makeText(context, reminderMessage, Toast.LENGTH_LONG).show()
+}
+
 class ReminderReceiver : BroadcastReceiver() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent) {
         val reminderMessage = intent.getStringExtra("reminderMessage") ?: "Remember to check in!"
         val vibrationEnabled = intent.getBooleanExtra("vibrationEnabled", false)
         val soundEnabled = intent.getBooleanExtra("soundEnabled", false)
 
         if (vibrationEnabled) {
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+            val vibrator = context.getSystemService(Vibrator::class.java)
+            vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
         }
 
         if (soundEnabled) {
             val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            RingtoneManager.getRingtone(context, notificationSound).play()
+            RingtoneManager.getRingtone(context, notificationSound)?.play()
         }
 
         Toast.makeText(context, reminderMessage, Toast.LENGTH_LONG).show()
@@ -308,6 +355,7 @@ class ReminderReceiver : BroadcastReceiver() {
 @Composable
 fun ReminderScreenPreview() {
     MobileTheme {
-        ReminderScreen()
+        val navController = rememberNavController()
+        ReminderScreen(navController)
     }
 }

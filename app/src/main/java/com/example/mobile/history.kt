@@ -522,6 +522,7 @@ fun MoodHistoryCard(entry: CombinedEntry) {
 
             //expands only when there is stress or anxiety info
             if (expands) {
+                // Displaying stress information, regardless of expands
                 entry.stressLevel?.let {
                     if (it.isNotEmpty()) {
                         Text(
@@ -532,6 +533,7 @@ fun MoodHistoryCard(entry: CombinedEntry) {
                         )
                     }
                 }
+
                 entry.stressNotes?.let {
                     if (it.isNotEmpty()) {
                         Text(
@@ -540,30 +542,32 @@ fun MoodHistoryCard(entry: CombinedEntry) {
                             fontSize = 14.sp
                         )
                     }
-                    entry.anxietyLevel?.let {
-                        if (it.isNotEmpty()) {
-                            Text(
-                                text = "Anxiety Level: $it",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-                    entry.anxietyNotes?.let {
-                        if (it.isNotEmpty()) {
-                            Text(
-                                text = "Anxiety Notes: $it",
-                                color = Color.Gray,
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-
                 }
+
+// Displaying anxiety information, regardless of expands
+                entry.anxietyLevel?.let {
+                    if (it.isNotEmpty()) {
+                        Text(
+                            text = "Anxiety Level: $it",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+
+                entry.anxietyNotes?.let {
+                    if (it.isNotEmpty()) {
+                        Text(
+                            text = "Anxiety Notes: $it",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
             }
         }
-
     }
 }
 

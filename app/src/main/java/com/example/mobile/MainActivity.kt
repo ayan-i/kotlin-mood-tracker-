@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
                     composable("mood_screen") { Mood(navController) }
                     composable("history_screen") { Option(navController) }
                     composable("advice_screen") { HelpLine(navController) }
+                    composable("reminder_screen") { ReminderScreen(navController) }
                     composable("stress_screen") { StressScreen(navController) }
                     composable("anxiety_screen") { AnxietyScreen(navController) }
 

@@ -36,11 +36,15 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 
+// Main activity class for the application
 class MyAppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Enables edge-to-edge display for better UI visibility
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // Setting the content view with a Composable function
         setContent {
+            // Launches the MoodPage screen and initializes a navigation controller
             MoodPage(navController = rememberNavController())
         }
     }

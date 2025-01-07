@@ -1,12 +1,8 @@
+package com.example.mobile // Define the package for the application
 
-
-package com.example.mobile // Make sure to include your package name
-
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -19,9 +15,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,36 +26,36 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.mobile.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import java.text.SimpleDateFormat
-import java.util.*
 
+// Main activity for the helpline screen
 class HelpLineActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             val navController = rememberNavController()
-            HelpLine(navController) // Display the HelpLine Composable
+            HelpLine(navController) // Launch the HelpLine composable
         }
     }
 }
 
+// Composable function for displaying the helpline UI
 @Composable
 fun HelpLine(navController: NavController) {
     val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
-    systemUiController.setStatusBarColor(color = Color.White)
-    systemUiController.setNavigationBarColor(color = Color.Transparent)
+    systemUiController.setStatusBarColor(color = Color.White) // Set status bar color
+    systemUiController.setNavigationBarColor(color = Color.Transparent) // Set navigation bar color
     val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(scrollState) // Make content scrollable
+            .verticalScroll(scrollState) // Enable vertical scrolling
     ) {
+        // Back button to navigate to the previous screen
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "Back",
@@ -73,7 +67,8 @@ fun HelpLine(navController: NavController) {
                 },
             tint = Color.Black
         )
-        // Full-width Image Section
+
+        // Display an image at the top
         Image(
             painter = painterResource(id = R.drawable.uwe),
             contentDescription = "UWE Image",
@@ -83,15 +78,15 @@ fun HelpLine(navController: NavController) {
                 .height(130.dp)
         )
 
-        // Apply padding to the rest of the content
+        // Content section with padding
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp) // Padding applied to all other content except the image
+                .padding(16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section Card Composable
+            // A reusable card component for different sections
             @Composable
             fun SectionCard(title: String, content: @Composable () -> Unit) {
                 Card(
@@ -109,7 +104,7 @@ fun HelpLine(navController: NavController) {
                 }
             }
 
-            // Contact Details Section
+            // Contact details section with phone and email
             SectionCard("Contact Details") {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -133,7 +128,7 @@ fun HelpLine(navController: NavController) {
                 }
             }
 
-            // 24/7 Suicide Helpline Card
+            // Section for the suicide helpline with a clickable call button
             SectionCard("24/7 Suicide Helpline") {
                 Text(text = "The Samaritans", fontSize = 14.sp, color = Color.Gray)
                 Text(
@@ -147,7 +142,7 @@ fun HelpLine(navController: NavController) {
                 )
             }
 
-            // 24/7 Mental Health Helpline Card
+            // Section for Mind support helpline
             SectionCard("Mind Support Line") {
                 Text(
                     text = "Call: 0300 102 1234",
@@ -160,8 +155,10 @@ fun HelpLine(navController: NavController) {
                 )
             }
 
+            // Divider for visual separation
             Divider(color = Color.LightGray, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
 
+            // Opening hours information
             SectionCard("Opening Hours") {
                 Text(text = "Term Times", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                 Text(text = "Monday to Thursday: 8:30 AM - 5:00 PM", fontSize = 14.sp, color = Color.Gray)
@@ -174,6 +171,7 @@ fun HelpLine(navController: NavController) {
                 Text(text = "Friday: 8:30 AM - 4:00 PM", fontSize = 14.sp, color = Color.Gray)
             }
 
+            // Web resources with clickable links
             SectionCard("Web Resources") {
                 Text(
                     text = "Visit our website",
@@ -184,65 +182,14 @@ fun HelpLine(navController: NavController) {
                         context.startActivity(intent)
                     }
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Student Support Services",
-                    fontSize = 14.sp,
-                    color = Color.Blue,
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.uwe.ac.uk/study/study-support/student-support-advisers"))
-                        context.startActivity(intent)
-                    }
-                )
-            }
-
-            SectionCard("Popular Topics") {
-                Text(
-                    text = "Managing Stress",
-                    fontSize = 14.sp,
-                    color = Color.Blue,
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.uwe.ac.uk/stress-management"))
-                        context.startActivity(intent)
-                    }
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Exam Preparation Tips",
-                    fontSize = 14.sp,
-                    color = Color.Blue,
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.uwe.ac.uk/study/study-support/study-skills/prepare-for-assessments#:~:text=Completing%20exams%20at%20home&text=Here%20are%20some%20tips%20to,friends%20and%20support%20each%20other"))
-                        context.startActivity(intent)
-                    }
-                )
-            }
-
-            SectionCard("Emergency Resources") {
-                Text(
-                    text = "Emergency Hotline: 999",
-                    fontSize = 14.sp,
-                    color = Color.Red
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Nearest Hospital",
-                    fontSize = 14.sp,
-                    color = Color.Blue,
-                    modifier = Modifier.clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=nearest+hospital"))
-                        context.startActivity(intent)
-                    }
-                )
             }
         }
     }
 }
 
+// Preview function for design testing
 @Preview(showBackground = true)
 @Composable
 fun PreviewHelpLine() {
     HelpLine(navController=rememberNavController())
 }
-
-//hello

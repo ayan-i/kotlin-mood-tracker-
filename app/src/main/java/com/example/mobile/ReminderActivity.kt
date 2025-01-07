@@ -45,6 +45,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 
+// Main activity responsible for managing and displaying the reminder screen
+// It sets up the user interface and manages the flow of the reminder settings.
 class ReminderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +62,7 @@ class ReminderActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderScreen(navController: NavController) {
+    // Controls the system UI colors to ensure a dark theme aesthetic
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Black)
     systemUiController.setNavigationBarColor(color = Color.Black)
@@ -70,6 +73,8 @@ fun ReminderScreen(navController: NavController) {
     var vibrationEnabled by remember { mutableStateOf(false) }
     var soundEnabled by remember { mutableStateOf(false) }
 
+    // SharedPreferences is used here to persistently store reminder settings like the message, vibration, and sound preferences.
+    // This ensures user settings are retained even when the app is closed and reopened.
     val sharedPreferences = context.getSharedPreferences("ReminderPrefs", Context.MODE_PRIVATE)
     val savedMessage = sharedPreferences.getString("reminderMessage", "")
     val savedVibration = sharedPreferences.getBoolean("vibrationEnabled", false)
@@ -92,7 +97,7 @@ fun ReminderScreen(navController: NavController) {
         calendar.get(Calendar.MINUTE),
         true
     )
-
+    // This function saves the user's reminder settings for future use, ensuring persistence across app sessions.
     fun saveSettings(message: String, vibration: Boolean, sound: Boolean) {
         with(sharedPreferences.edit()) {
             putString("reminderMessage", message)
@@ -103,13 +108,14 @@ fun ReminderScreen(navController: NavController) {
     }
 
     @SuppressLint("ScheduleExactAlarm")
+    // This function sets an alarm using the system AlarmManager for the reminder notification.
     fun scheduleNotification(hour: Int, minute: Int, message: String, vibration: Boolean, sound: Boolean) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        if (message.isBlank()) {
-            Toast.makeText(context, "Reminder message cannot be empty.", Toast.LENGTH_SHORT).show()
-            return
-        }
+//        if (message.isBlank()) {
+//            Toast.makeText(context, "Reminder message cannot be empty.", Toast.LENGTH_SHORT).show()
+//            return
+//        }
 
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             putExtra("reminderMessage", message)
@@ -149,7 +155,7 @@ fun ReminderScreen(navController: NavController) {
     ) {
         Text(
             text = "SET A REMINDER.",
-            fontSize = 18.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.padding(bottom = 18.dp),
@@ -158,7 +164,7 @@ fun ReminderScreen(navController: NavController) {
 
         Text(
             text = "Building a routine helps bring structure.",
-            fontSize = 14.sp,
+            fontSize = 18.sp,
             color = Color.White.copy(alpha = 0.7f),
             modifier = Modifier.padding(bottom = 24.dp),
             textAlign = TextAlign.Center
@@ -287,14 +293,14 @@ fun ReminderScreen(navController: NavController) {
         }
     }
 }
-
+// Function to snooze a reminder for a specified number of minutes
 fun snoozeReminder(context: Context, snoozeMinutes: Int) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
+// Calculate the snooze time from the current time
     val snoozeTime = Calendar.getInstance().apply {
         add(Calendar.MINUTE, snoozeMinutes)
     }
-
+// Prepare the intent for the reminder receiver with snoozed reminder message and settings
     val intent = Intent(context, ReminderReceiver::class.java).apply {
         putExtra("reminderMessage", "Snoozed Reminder")
         putExtra("vibrationEnabled", true)
@@ -306,47 +312,50 @@ fun snoozeReminder(context: Context, snoozeMinutes: Int) {
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
-
+// Schedule the snoozed reminder using AlarmManager
     alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, snoozeTime.timeInMillis, pendingIntent)
+    // Notify the user that the reminder has been snoozed
     Toast.makeText(context, "Reminder snoozed for $snoozeMinutes minutes", Toast.LENGTH_SHORT).show()
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun onReceive(context: Context, intent: Intent) {
-    val reminderMessage = intent.getStringExtra("reminderMessage") ?: "Remember to check in!"
-    val vibrationEnabled = intent.getBooleanExtra("vibrationEnabled", false)
-    val soundEnabled = intent.getBooleanExtra("soundEnabled", false)
-
-    if (vibrationEnabled) {
-        val vibrator = context.getSystemService(Vibrator::class.java)
-        vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
-    }
-
-    if (soundEnabled) {
-        val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        RingtoneManager.getRingtone(context, notificationSound)?.play()
-    }
-
-    Toast.makeText(context, reminderMessage, Toast.LENGTH_LONG).show()
-}
-
+//@RequiresApi(Build.VERSION_CODES.O)
+//fun onReceive(context: Context, intent: Intent) {
+//    val reminderMessage = intent.getStringExtra("reminderMessage") ?: "Remember to check in!"
+//    val vibrationEnabled = intent.getBooleanExtra("vibrationEnabled", false)
+//    val soundEnabled = intent.getBooleanExtra("soundEnabled", false)
+//
+//    if (vibrationEnabled) {
+//        val vibrator = context.getSystemService(Vibrator::class.java)
+//        vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+//    }
+//
+//    if (soundEnabled) {
+//        val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+//        RingtoneManager.getRingtone(context, notificationSound)?.play()
+//    }
+//
+//    Toast.makeText(context, reminderMessage, Toast.LENGTH_LONG).show()
+//}
+// This receiver handles the actual triggering of the reminder notification when the alarm goes off.
 class ReminderReceiver : BroadcastReceiver() {
     @RequiresApi(Build.VERSION_CODES.O)
+    // Called when the reminder alarm goes off, responsible for handling the reminder logic
     override fun onReceive(context: Context, intent: Intent) {
+        // Retrieve the reminder message and notification settings from the intent
         val reminderMessage = intent.getStringExtra("reminderMessage") ?: "Remember to check in!"
         val vibrationEnabled = intent.getBooleanExtra("vibrationEnabled", false)
         val soundEnabled = intent.getBooleanExtra("soundEnabled", false)
-
+        // Trigger vibration if enabled
         if (vibrationEnabled) {
             val vibrator = context.getSystemService(Vibrator::class.java)
             vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
         }
-
+        // Play a notification sound if enabled
         if (soundEnabled) {
             val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             RingtoneManager.getRingtone(context, notificationSound)?.play()
         }
-
+        // Display a toast message with the reminder
         Toast.makeText(context, reminderMessage, Toast.LENGTH_LONG).show()
     }
 }

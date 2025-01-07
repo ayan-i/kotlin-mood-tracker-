@@ -45,7 +45,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.round
-import android.graphics.Paint
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -56,30 +55,39 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-
+// OverviewActivity serves as a screen for displaying an overview of the app's features
 class OverviewActivity : ComponentActivity() {
+    // Called when the activity is first created
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // Initializes the navigation controller for managing navigation
             val navController = rememberNavController()
+            // Displays the overview screen, passing the navigation controller
             overview(navController)
 
 
         }
     }
 }
-
+// Function to handle user logout
 fun logout(navController: NavController, context: Context){
+    // Access the shared preferences to manage user session data
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    // Retrieve the userId from shared preferences
     val userId = sharedPreferences.getString("userId", null)
+    // Remove the userId from shared preferences to log the user out
     sharedPreferences.edit().remove("userId").commit();
+    // Navigate back to the main page after logout
     navController.navigate("main_page")
 }
 
 //got the code from https://medium.com/@developerchunk/create-custom-bargraph-with-scales-in-jetpack-compose-android-studio-kotlin-deadba24fd9b
 //then made changes needed
-data class MoodEntry1(val userId: String, val mood: String, val count: Int = 0)
 
+// Data class representing a mood entry with default count set to zero
+data class MoodEntry1(val userId: String, val mood: String, val count: Int = 0)
+// Enum representing different types of bar graph styles
 enum class BarType {
     CIRCULAR_TYPE, TOP_CURVED
 }
@@ -95,27 +103,29 @@ fun BarGraph(
     barColor:List<Color>,
     barArrangement: Arrangement.Horizontal
 ) {
+    // Store bar data with an extra zero appended for scaling purposes
     val barData by remember { mutableStateOf(bar + 0) }
 
-
+// Access device configuration for screen width calculation
     val configuration = LocalConfiguration.current
     val width = configuration.screenWidthDp.dp
-
+    // Define dimensions for x-axis and y-axis scaling
     val xAxisScaleHeight = 40.dp
     val yAxisScaleSpacing by remember { mutableStateOf(100f) }
     val yAxisTextWidth by remember { mutableStateOf(100.dp) }
-
+    // Determine the shape of the bars based on the round type specified
     val barShape = when (roundType) {
         BarType.CIRCULAR_TYPE -> CircleShape
         BarType.TOP_CURVED -> RoundedCornerShape(topStart = 5.dp, topEnd = 5.dp)
     }
 
     val density = LocalDensity.current
-
+    // Outer container for the entire graph
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopStart
     ) {
+        // Column for the Y-axis labels and scaling
         Column(
             modifier = Modifier
                 .padding(top = xAxisScaleHeight, end = 3.dp)
@@ -123,11 +133,13 @@ fun BarGraph(
                 .fillMaxWidth(),
             horizontalAlignment = CenterHorizontally
         ) {
+
             Canvas(modifier = Modifier.padding(bottom = 10.dp).fillMaxSize()) {
                 // Y-Axis Scale Text
+                // Calculate Y-axis scale text based on the maximum value
                 val yAxisScaleText = (barData.max()) / 3f
 
-                // Create the textPaint object once outside of the loop
+                // Initialize a Paint object for drawing Y-axis labels
                 val textPaint = android.graphics.Paint().apply {
                     color = Color.White.toArgb()
                     textAlign = android.graphics.Paint.Align.CENTER
@@ -149,7 +161,7 @@ fun BarGraph(
                 }
             }
         }
-
+        // Container for bars and X-axis labels
         Box(
             modifier = Modifier
                 .padding(start = 50.dp)
@@ -157,29 +169,33 @@ fun BarGraph(
                 .height(height + xAxisScaleHeight),
             contentAlignment = Alignment.BottomCenter
         ) {
+            // Row for bar graph rendering
             Row(
                 modifier = Modifier.width(width - yAxisTextWidth),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = barArrangement
             ) {
-                graphBarData.forEachIndexed { index, value ->
-                    var animationTriggered by remember { mutableStateOf(false) }
 
+                graphBarData.forEachIndexed { index, value ->
+                    // Control animation trigger state
+                    var animationTriggered by remember { mutableStateOf(false) }
+                    // Animate the bar height on trigger
                     val graphBarHeight by animateFloatAsState(
                         targetValue = if (animationTriggered) value else 0f,
                         animationSpec = tween(durationMillis = 1000, delayMillis = 0)
                     )
 
-
+                    // Trigger the animation on initial composition
                     LaunchedEffect(key1 = true) {
                         animationTriggered = true
                     }
-
+                    // Column for individual bars and their respective labels
                     Column(
                         modifier = Modifier.fillMaxHeight(),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = CenterHorizontally
                     ) {
+                        // Bar container with clipping and animation
                         Box(
                             modifier = Modifier
                                 .padding(bottom = 5.dp)
@@ -189,6 +205,7 @@ fun BarGraph(
                                 .background(Color.Transparent),
                             contentAlignment = Alignment.BottomCenter
                         ) {
+                            // Actual animated bar
                             Box(
                                 modifier = Modifier
                                     .clip(barShape)
@@ -197,13 +214,14 @@ fun BarGraph(
                                     .background(barColor[index])
                             )
                         }
-
+                        // X-axis labels and markers
                         Column(
                             modifier = Modifier
                                 .height(xAxisScaleHeight),
                             verticalArrangement = Arrangement.Top,
                             horizontalAlignment = CenterHorizontally
                         ) {
+                            // X-axis tick mark
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(bottomStart = 2.dp, bottomEnd = 2.dp))
@@ -211,6 +229,7 @@ fun BarGraph(
                                     .height(10.dp)
                                     .background(color = Color.White)
                             )
+                            // X-axis label text
                             Text(
                                 modifier = Modifier.padding(bottom = 3.dp),
                                 text = xAxisScaleData[index],
@@ -256,11 +275,13 @@ fun readMoodBar(context: Context, userId: String): List<MoodEntry1> {
 
 @Composable
 fun MoodGraph() {
+    // Access the local context and retrieve shared preferences
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
     val userId = sharedPreferences.getString("userId", null)
+    // State to hold mood history data
     var moodHistory by remember { mutableStateOf<List<MoodEntry1>>(emptyList()) }
-
+    // Load mood history when the user ID changes
     LaunchedEffect(userId) {
         if (!userId.isNullOrEmpty()) {
             moodHistory = readMoodBar(context, userId)
@@ -268,9 +289,9 @@ fun MoodGraph() {
             Log.e("MoodHistory", "Error: User ID is null or empty")
         }
     }
-
-
+    // Check if there is any mood history data available
     if (moodHistory.isEmpty()) {
+        // Display message when there is no mood history
         Text(
             text = "Mood Count",
             fontSize = 24.sp,
@@ -281,6 +302,7 @@ fun MoodGraph() {
         Spacer(modifier = Modifier.height(32.dp))
         Text("No mood history available", color = Color.White, fontSize = 17.sp, modifier = Modifier.padding(start=16.dp))
     } else {
+        // Define all mood categories and corresponding bar colors
         val allMoods = listOf("Joyful", "Happy", "Meh", "Bad", "Down")
         val barColors = listOf(
             Color(0xFF64B5F6),
@@ -290,18 +312,18 @@ fun MoodGraph() {
             Color(0xFFEF5350)
         )
 
-        // Get the max value for count to dynamically scale graph
+        // Calculate the maximum mood count for dynamic graph scaling
         val maxCount = moodHistory.maxOfOrNull { it.count } ?: 1
 
-        // get the missing moods if they are 0 so they can come up
+        // Ensure all mood categories are represented in the graph, even with zero counts
         val fixedMoodHistory = allMoods.map { mood ->
             moodHistory.find { it.mood == mood } ?: MoodEntry1(userId ?: "", mood, 0)
         }
-
+        // Debug log for mood entries
         fixedMoodHistory.forEach { moodEntry ->
             Log.d("MoodGraph", "Mood: ${moodEntry.mood}, Count: ${moodEntry.count}")
         }
-
+        // Display the mood count heading
         Text(
             text = "Mood Count",
             fontSize = 24.sp,
@@ -310,6 +332,7 @@ fun MoodGraph() {
             modifier = Modifier.padding(top=25.dp,start=16.dp)
         )
         Spacer(modifier = Modifier.padding(20.dp))
+        // Display the bar graph within a column layout
         Column(
             modifier = Modifier
                 .padding(horizontal = 30.dp)
@@ -319,9 +342,8 @@ fun MoodGraph() {
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Render the BarGraph component with normalized mood count data
             BarGraph(
-                // get the mood counts from Moodentry1 list
-                //Highest bar would be the maxCount
                 graphBarData = fixedMoodHistory.map { it.count.toFloat() / maxCount },
                 xAxisScaleData = allMoods,
                 bar = fixedMoodHistory.map { it.count },
@@ -337,21 +359,25 @@ fun MoodGraph() {
 
 @Composable
 fun overview(navController: NavController) {
+    // Control system UI appearance (status bar and navigation bar)
     val systemUiController = rememberSystemUiController()
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
     val userId = sharedPreferences.getString("userId", null)
 
+    // Set the status bar and navigation bar colors
     systemUiController.setStatusBarColor(color = Color.Black)
     systemUiController.setNavigationBarColor(color = colorResource(R.color.lightpurple))
 
+    // Drawer and coroutine scope setup for UI interaction
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
+    // State holders for anxiety and stress data
     val anxietyData = remember { mutableStateOf<List<Pair<Long, Int>>>(emptyList()) }
     val stressData = remember { mutableStateListOf<Pair<String, Int>>() }
 
-    // Load data for anxiety and stress
+    // Load anxiety and stress data when the user ID changes
     LaunchedEffect(userId) {
         if (!userId.isNullOrEmpty()) {
             anxietyData.value = readAnxietyData1(context, userId)
@@ -364,11 +390,12 @@ fun overview(navController: NavController) {
     }
 
 
-
+    // Modal drawer component to hold the navigation drawer
     ModalDrawer(
         drawerState = drawerState,
         drawerContent = { DrawerContent(navController, context) }
     ) {
+        // Main scaffold layout for top bar, content, and bottom navigation
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -389,6 +416,7 @@ fun overview(navController: NavController) {
             content = { padding ->
                 val scrollState = rememberScrollState()
 
+                // Main column layout for content sections
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -398,7 +426,6 @@ fun overview(navController: NavController) {
 
                 ) {
                     // Mood Graph Section
-
                     MoodGraph()
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -445,6 +472,7 @@ fun overview(navController: NavController) {
                     Spacer(modifier = Modifier.padding(15.dp))
                 }
             },
+            // Bottom navigation bar component
             bottomBar = {
                 BottomNavigationBar(navController)
             }
@@ -498,37 +526,46 @@ fun overview(navController: NavController) {
  * Reads anxiety data from a file and returns a list of (timestamp, anxietyLevel) pairs.
  */
 fun readAnxietyData1(context: Context, userID: String): List<Pair<Long, Int>> {
+    // Define the filename and initialize a mutable list to store data
     val filename = "anxiety_data.txt"
     val dataList = mutableListOf<Pair<Long, Int>>()
 
     try {
+        // Open the file for reading
         val fileInputStream = context.openFileInput(filename)
         val reader = BufferedReader(InputStreamReader(fileInputStream))
-
+        // Variables to hold the current data entry values
         var currentId: String? = null
         var currentDate: String? = null
         var currentLevel: String? = null
 
+        // Read each line of the file and parse it
         reader.forEachLine { line ->
             when {
+                // Parse the user ID
                 line.startsWith("ID: ") -> {
                     currentId = line.substringAfter("ID: ").trim()
                     Log.d("AnxietyData", "Parsed ID: $currentId")
                 }
+                // Parse the date
                 line.startsWith("Date: ") -> {
                     currentDate = line.substringAfter("Date: ").trim()
                     Log.d("AnxietyData", "Parsed Date: $currentDate")
                 }
+                // Parse the anxiety level
                 line.startsWith("Level: ") -> {
                     currentLevel = line.substringAfter("Level: ").trim()
                     Log.d("AnxietyData", "Parsed Level: $currentLevel")
                 }
+                // Parse notes and finalize the data entry
                 line.startsWith("Notes: ") -> {
+                    // Validate data before adding to the list
                     if (currentId == userID && currentDate != null && currentLevel != null) {
                         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                         val timestamp = dateFormat.parse(currentDate)?.time
                         val level = convertAnxietyLevelToNumber1(currentLevel!!)
 
+                        // If parsing is successful, add the entry
                         if (timestamp != null && level != null) {
                             dataList.add(timestamp to level)
                             Log.d("AnxietyData", "Added data - Timestamp: $timestamp, Level: $level")
@@ -536,6 +573,7 @@ fun readAnxietyData1(context: Context, userID: String): List<Pair<Long, Int>> {
                             Log.e("AnxietyData", "Failed to parse timestamp or level")
                         }
                     } else {
+                        // Log warning for invalid entries
                         Log.w(
                             "AnxietyData",
                             "Skipped entry - UserID: $currentId, Date: $currentDate, Level: $currentLevel"
@@ -550,25 +588,29 @@ fun readAnxietyData1(context: Context, userID: String): List<Pair<Long, Int>> {
             }
         }
     } catch (e: FileNotFoundException) {
+        // Log an error if the file is not found
         Log.e("FileCheck", "anxiety_data.txt not found")
     } catch (e: Exception) {
+        // Log a generic error if an exception occurs
         Log.e("ReadDataError", "Error reading anxiety data", e)
     }
 
-    // Log the final list of parsed data
+    // Log the final parsed data for debugging purposes
     dataList.forEach { Log.d("FinalAnxietyData", "Timestamp: ${it.first}, Level: ${it.second}") }
-
+    // Return the data list in reverse chronological order
     return dataList.reversed() // Return in reverse chronological order
 }
 
 
 
 fun convertAnxietyLevelToNumber1(level: String): Int? {
+    // Define a list of anxiety levels from least to most severe
     val levels = listOf(
         "Not Anxious", "Very Bad", "Bad", "Anxiety Comes and Goes",
         "Mild Anxiety", "Anxiety Triggered", "Anxious but Survive",
         "Constant Fidgeting", "Anxiety Attack", "Panic Attack"
     )
+    // Return the index of the provided level if it exists in the list, otherwise return null
     return levels.indexOf(level).takeIf { it != -1 }
 }
 
@@ -607,22 +649,27 @@ fun AnxietyLineChart1(data: List<Pair<Long, Int>>) {
  * Helper function to draw the chart inside the Canvas with axes and labels.
  */
 private fun DrawScope.drawLineChartWithAxes(
-    data: List<Pair<Long, Int>>,
-    lineColor: Color,
-    pointColor: Color
+    data: List<Pair<Long, Int>>, // List of data points (x, y) pairs
+    lineColor: Color, // Color for the line graph
+    pointColor: Color // Color for the points on the graph
 ) {
+    // Calculate the maximum and minimum values for the axes
     val maxX = data.maxOfOrNull { it.first } ?: 1L
     val minX = data.minOfOrNull { it.first } ?: 0L
     val maxY = 10 // Fixed Y-axis max value
     val minY = 0 // Fixed Y-axis min value
 
+    // Calculate scaling factors for both axes
     val xScale = size.width / (maxX - minX).toFloat()
     val yScale = size.height / (maxY - minY).toFloat()
 
+    // Format for X-axis date labels
     val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault()) // Format for X-axis labels
 
+    // Debug log for scale ranges
     Log.d("LineChartScale", "X-Axis Range: $minX to $maxX, Y-Axis Range: $minY to $maxY") // Debugging
 
+    // Convert data points into drawable coordinates
     val points = data.map { (x, y) ->
         androidx.compose.ui.geometry.Offset(
             x = (x - minX) * xScale,
@@ -630,10 +677,12 @@ private fun DrawScope.drawLineChartWithAxes(
         )
     }
 
+    // Log the generated points for debugging
     points.forEach { point ->
         Log.d("LineChartPoints", "Point: $point") // Debugging
     }
 
+    // Draw the line connecting the points
     for (i in 0 until points.size - 1) {
         drawLine(
             color = lineColor,
@@ -643,6 +692,7 @@ private fun DrawScope.drawLineChartWithAxes(
         )
     }
 
+    // Draw circles at each data point
     points.forEach { point ->
         drawCircle(
             color = pointColor,
@@ -683,7 +733,7 @@ private fun DrawScope.drawLineChartWithAxes(
         )
     }
 
-    // Add X-axis labels
+    // Add labels for the X-axis (date formatted)
     val numberOfLabels = 5 // Number of labels to show on the X-axis
     val interval = (maxX - minX) / numberOfLabels
     for (i in 0..numberOfLabels) {
@@ -706,28 +756,42 @@ private fun DrawScope.drawLineChartWithAxes(
 }
 
 
-
+// Data class representing a stress entry with a userId, stress level, and count
 data class StressEntry2(val userId: String, val stressLevel: String, val count: Int = 0)
 
+/**
+ * Reads stress data from a file and aggregates it for a pie chart visualization.
+ * @param context The application context used to access the file.
+ * @param userId The user ID for filtering the stress data.
+ * @return A list of pairs containing stress levels and their respective counts.
+ */
 fun readStressDataForPieChart(context: Context, userId: String): List<Pair<String, Int>> {
+    // File where stress data is stored
     val filename = "stress_history.txt"
+    // Mutable map to store counts for each stress level
     val stressCounts = mutableMapOf<String, Int>()
 
     try {
+        // Open the file for reading
         val fileInputStream = context.openFileInput(filename)
         val reader = BufferedReader(InputStreamReader(fileInputStream))
 
+        // Variables to hold current data fields during file parsing
         var currentId: String? = null
         var currentLevel: String? = null
 
+        // Read the file line by line and parse the data
         reader.forEachLine { line ->
             when {
+                // Capture the user ID
                 line.startsWith("ID: ") -> {
                     currentId = line.substringAfter("ID: ").trim()
                 }
+                // Capture the stress level
                 line.startsWith("Level: ") -> {
                     currentLevel = line.substringAfter("Level: ").trim()
                 }
+                // When notes are encountered, process the data if it matches the user ID
                 line.startsWith("Notes: ") -> {
                     if (currentId == userId && currentLevel != null) {
                         val count = stressCounts[currentLevel] ?: 0
@@ -740,9 +804,11 @@ fun readStressDataForPieChart(context: Context, userId: String): List<Pair<Strin
             }
         }
     } catch (e: Exception) {
+        // Log any errors encountered while reading the file
         Log.e("StressData", "Error reading stress data", e)
     }
 
+    // Convert the map into a list of pairs for easier processing in charts
     return stressCounts.toList()
 }
 
@@ -786,7 +852,9 @@ fun readStressDataForPieChart(context: Context, userId: String): List<Pair<Strin
 
 @Composable
 fun DrawStressPieChart(data: List<Pair<String, Int>>) {
+    // Calculate the total value of all data points for percentage calculation
     val total = data.sumOf { it.second.toDouble() }.toFloat()
+    // Define a list of colors for the pie chart segments
     val colors = listOf(
 
         Color(0xFF9575CD), // Purple
@@ -800,6 +868,7 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
         Color(0xFFFF7043), // Orange
         Color(0xFFEF5350), // Red
     )
+    // Canvas to draw the pie chart
     Canvas(
         modifier = Modifier
             .width(350.dp)
@@ -808,26 +877,33 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
     ) {
         var startAngle = 0f
 
+        // Loop through the data and draw the pie chart slices
         data.forEachIndexed { index, entry ->
+            // Calculate the sweep angle for the current slice
             val sweepAngle = (entry.second / total) * 360f
+            // Draw the slice using an arc
             drawArc(
                 color = colors[index % colors.size],
                 startAngle = startAngle,
                 sweepAngle = sweepAngle,
                 useCenter = true
             )
+            // Update the starting angle for the next slice
             startAngle += sweepAngle
         }
 
-        // Add labels
+        // Reset start angle for label placement
         startAngle = 0f
+        // Loop through the data again to draw labels on the slices
         data.forEachIndexed { index, entry ->
             val sweepAngle = (entry.second / total) * 360f
             val angle = startAngle + sweepAngle / 2
             val radius = size.minDimension / 3
+            // Calculate the position for the label
             val x = center.x + radius * cos(angle * PI / 180).toFloat()
             val y = center.y + radius * sin(angle * PI / 180).toFloat()
 
+            // Draw the label at the calculated position
             drawContext.canvas.nativeCanvas.drawText(
                 entry.first,
                 x,
@@ -839,6 +915,7 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
                     textAlign = android.graphics.Paint.Align.CENTER
                 }
             )
+            // Update the start angle for the next slice
             startAngle += sweepAngle
         }
     }
@@ -928,11 +1005,13 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
+    // Create a BottomNavigation bar with a defined background and content color
     BottomNavigation(
         backgroundColor = colorResource(R.color.lightpurple),
         contentColor = Color.Black,
         modifier = Modifier.padding(bottom = 22.dp)
     ) {
+        // Navigation item for the overview screen
         BottomNavigationItem(
             selected = false,
             onClick = { navController.navigate("overview_screen") },
@@ -945,6 +1024,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             label = { Text("Overview", fontWeight = FontWeight.SemiBold, fontSize = 13.sp) }
         )
+        // Navigation item for the history screen
         BottomNavigationItem(
             selected = false,
             onClick = { navController.navigate("history_screen") },
@@ -957,6 +1037,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             label = { Text("History", fontSize = 16.sp, fontWeight = FontWeight.Medium) }
         )
+        // Navigation item for adding a new mood entry
         BottomNavigationItem(
             selected = false,
             onClick = { navController.navigate("mood_screen") },
@@ -968,6 +1049,7 @@ fun BottomNavigationBar(navController: NavController) {
                 )
             }
         )
+        // Navigation item for the stress management screen
         BottomNavigationItem(
             selected = false,
             onClick = { navController.navigate("stress_screen") },
@@ -980,6 +1062,7 @@ fun BottomNavigationBar(navController: NavController) {
             },
             label = { Text("Med", fontSize = 16.sp) }
         )
+        // Navigation item for the advice screen
         BottomNavigationItem(
             selected = false,
             onClick = { navController.navigate("advice_screen") },
@@ -997,52 +1080,60 @@ fun BottomNavigationBar(navController: NavController) {
 
 @Composable
 fun DrawerContent(navController: NavController, context: Context) {
+    // Column layout for the entire drawer content
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(color = colorResource(R.color.lightpurple))
-            .padding(16.dp)
+            .fillMaxSize() // Occupies the full available space
+            .background(color = colorResource(R.color.lightpurple)) // Background color for the drawer
+            .padding(16.dp) // Padding around the content
     ) {
+        // Header section of the drawer
         Text(
             text = "Navigation Menu",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(top= 20.dp,bottom = 10.dp)
+            fontSize = 20.sp, // Font size for the header text
+            fontWeight = FontWeight.Bold, // Bold font weight for emphasis
+            color = Color.Black, // Text color
+            modifier = Modifier.padding(top= 20.dp,bottom = 10.dp) // Padding for spacing
         )
+        // Divider to separate the header from the navigation items
         Divider(color = Color.Black, thickness = 1.dp)
 
-        DrawerItem("overview", Icons.Default.Dashboard) { navController.navigate("overview_screen") }
-        DrawerItem("Advice", Icons.Default.Phone) { navController.navigate("advice_screen") }
-        DrawerItem("Mood", Icons.Default.AddCircle) { navController.navigate("mood_screen") }
-        DrawerItem("Stress Level", Icons.Default.BatteryAlert) { navController.navigate("stress_screen") }
-        DrawerItem("Anxiety Level", Icons.Default.Warning) { navController.navigate("anxiety_screen") }
-        DrawerItem("Reminder Activity", Icons.Default.Warning) { navController.navigate("reminder_screen") }
+        // Navigation items with respective icons and click actions
+        DrawerItem("overview", Icons.Filled.Home) { navController.navigate("overview_screen") }
+        DrawerItem("Advice", Icons.Filled.Info) { navController.navigate("advice_screen") }
+        DrawerItem("Mood", Icons.Filled.Mood) { navController.navigate("mood_screen") }
+        DrawerItem("Stress Level", Icons.Filled.BatteryFull) { navController.navigate("stress_screen") }
+        DrawerItem("Anxiety Level", Icons.Filled.ReportProblem) { navController.navigate("anxiety_screen") }
+        DrawerItem("Reminder Activity", Icons.Filled.EventNote) { navController.navigate("reminder_screen") }
         DrawerItem("Logout", Icons.Default.Logout) { logout(navController, context) }
     }
 }
 
 @Composable
 fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
+    // Row layout for displaying a single item in the drawer menu
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .fillMaxWidth() // Fills the entire width of the parent
+            .clickable { onClick() } // Makes the row clickable with the provided action
+            .padding(vertical = 12.dp), // Adds vertical padding for spacing
+        verticalAlignment = Alignment.CenterVertically // Centers the content vertically
     ) {
+        // Icon displayed alongside the text
         Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = Color.White,
-            modifier = Modifier.size(24.dp)
+            imageVector = icon, // Icon image
+            contentDescription = label, // Accessibility description
+            tint = Color.White, // Icon color
+            modifier = Modifier.size(24.dp) // Icon size
         )
+        // Spacer for adding space between the icon and text
         Spacer(modifier = Modifier.width(16.dp))
+        // Text label for the drawer item
         Text(
-            text = label,
-            fontSize = 16.sp,
-            color = Color.Black,
-            fontWeight = FontWeight.Bold
+            text = label, // Label text
+            fontSize = 16.sp, // Font size for readability
+            color = Color.Black, // Text color
+            fontWeight = FontWeight.Bold // Bold text for emphasis
         )
     }
 }
@@ -1050,6 +1141,7 @@ fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun AnxietyLineChartPreview() {
+    // Preview for the AnxietyLineChart component with example data
     AnxietyLineChart1(
         data = listOf(
             1672531200000L to 5, // Example timestamp and level

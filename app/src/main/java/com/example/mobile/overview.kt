@@ -61,7 +61,7 @@ class OverviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Initializes the navigation controller for managing navigation
+            // Initialises the navigation controller for managing navigation
             val navController = rememberNavController()
             // Displays the overview screen, passing the navigation controller
             overview(navController)

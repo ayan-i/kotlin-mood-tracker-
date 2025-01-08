@@ -35,6 +35,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.runtime.Composable
 import java.io.FileOutputStream
 import android.widget.Toast
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import java.io.IOException
@@ -91,6 +92,17 @@ fun Mood(navController: NavController) {
             .background(color = Color.Black)
             .padding(16.dp)
     ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Back",
+            modifier = Modifier
+                .size(60.dp)
+                .padding(top =25.dp, start = 1.dp)
+                .clickable {
+                    navController.navigate(route = "overview_screen")
+                },
+            tint = Color.White
+        )
         Text(
             text = "How are you today?",
             color = Color.White,

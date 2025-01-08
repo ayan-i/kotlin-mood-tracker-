@@ -59,8 +59,9 @@ class LoginActivity : ComponentActivity() {
 }
 //function to save userID to SharedPreferences
 fun saveUserIdToPreferences(context: Context, userId: String) {
-
+    // Get the SharedPreferences object for the "user_session" file in private mode
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    // Save the userID in SharedPreferences with the key "userId"
     sharedPreferences.edit().putString("userId", userId).apply()
 }
 //function to handle user login

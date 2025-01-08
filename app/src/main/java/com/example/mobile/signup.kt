@@ -45,6 +45,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import java.io.FileOutputStream
 import java.io.IOException
 
+//class activity for signup
 class SignUpActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -57,18 +58,16 @@ class SignUpActivity : ComponentActivity() {
 }
 @Composable
 fun SignUp(navController: NavController) {
-    //forget password [make another page send an email]
-    //username validation [otherwise it will crash]
-    var selectedMood by remember { mutableStateOf("") }
     val context = LocalContext.current
     var checked by remember { mutableStateOf(true) }
-    var password by remember { mutableStateOf(value = "") }
-    var username by remember { mutableStateOf(value = "") }
+    var password by remember { mutableStateOf(value = "") } // Remember the checkbox state
+    var username by remember { mutableStateOf(value = "") } // // Remember the username state
     var showPassword by remember { mutableStateOf(value = "") }
-    var email by remember { mutableStateOf(value = "") }
-    var full_Name by remember { mutableStateOf(value = "") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf(value = "") } // Remember the email state
+    var full_Name by remember { mutableStateOf(value = "") } // Remember the full name state
+    var confirmPassword by remember { mutableStateOf("") } // Remember the confirm Password  state
 
+    //set the system bar colour to transparent
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent)
     Box(
@@ -77,7 +76,6 @@ fun SignUp(navController: NavController) {
             .fillMaxWidth()
             .background(color = Color.Black)
     ) {
-        //hello
 
         Text(
             text = "GET STARTED",
@@ -87,11 +85,12 @@ fun SignUp(navController: NavController) {
             modifier = Modifier.padding(top = 140.dp, start = 60.dp)
         )
 
+        // full name textfield
         TextField(
             value = full_Name,
             maxLines = 1,
             textStyle = TextStyle(fontSize = 20.sp),
-            onValueChange = { full_Name = it },
+            onValueChange = { full_Name = it },//saved what is written
             placeholder = {
                 Text(text = "Name", color = Color.Gray, fontSize = 16.sp)
             },
@@ -106,7 +105,7 @@ fun SignUp(navController: NavController) {
                 .fillMaxWidth()
 
         )
-
+        //email input field
         TextField(
             value = email,
             maxLines = 1,
@@ -126,7 +125,7 @@ fun SignUp(navController: NavController) {
                 .fillMaxWidth()
 
         )
-
+        // Username input field
         TextField(
             value = username,
             maxLines = 1,
@@ -147,7 +146,7 @@ fun SignUp(navController: NavController) {
 
         )
 
-
+        // Password input field
         TextField(
             value = password,
             maxLines = 1,
@@ -173,7 +172,7 @@ fun SignUp(navController: NavController) {
                 .fillMaxWidth(),
         )
 
-
+        // Confirm password input field
         TextField(
             value = confirmPassword,
             textStyle = TextStyle(fontSize = 20.sp),
@@ -197,7 +196,7 @@ fun SignUp(navController: NavController) {
             modifier = Modifier.padding(top = 470.dp, start = 40.dp, end = 40.dp)
                 .fillMaxWidth(),
         )
-
+        //Password mismatch message
         if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
             Text(
                 text = "Password does not match",
@@ -208,7 +207,7 @@ fun SignUp(navController: NavController) {
             )
         }
 
-
+        //I agree with the Terms & Conditions
         Text(
             text = "I agree with the Terms & Conditions",
             color = colorResource(R.color.lightpurple),
@@ -229,23 +228,26 @@ fun SignUp(navController: NavController) {
         Button(
             onClick = {
                 try {
+                    // Save the new user data
                     val existingUsers = mutableListOf<String>()
                     val file = context.getFileStreamPath("login.txt")
-
                     // Read existing usernames if file exists
                     if (file.exists()) {
                         context.openFileInput("login.txt").use { fis ->
                             fis.bufferedReader().useLines { lines ->
+                                //read lines of the txt file
                                 lines.forEach { line ->
                                     val userDetails = line.split(",")
                                     if (userDetails.size > 2) {
-                                        existingUsers.add(userDetails[2]) // Username is the 3rd element
+                                        // Ensure the line has at least 3 parts
+                                        existingUsers.add(userDetails[2])
+                                        // Add the username (3rd element) to the list of existing users
                                     }
                                 }
                             }
                         }
                     }
-                    //validation for usernames
+                    //validation for all Textfields
                     when {
                         full_Name.isBlank() -> {
                             Toast.makeText(context, "Name cannot be blank.", Toast.LENGTH_SHORT).show()
@@ -280,11 +282,12 @@ fun SignUp(navController: NavController) {
                             val userId = UUID.randomUUID().toString()
                             val fos: FileOutputStream =
                                 context.openFileOutput("login.txt", Context.MODE_APPEND)
+                            // Save this parameters
                             val entry = "$userId,$email,$username,$password\n"
                             fos.write(entry.toByteArray())
                             fos.flush()
                             fos.close()
-
+                            //success message and goes to login page
                             Toast.makeText(context, "Sign-up successful!", Toast.LENGTH_SHORT).show()
                             navController.navigate("login_screen")
                         }

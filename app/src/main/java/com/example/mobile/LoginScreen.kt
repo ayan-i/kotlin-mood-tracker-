@@ -57,20 +57,24 @@ class LoginActivity : ComponentActivity() {
         }
     }
 }
-
+//function to save userID to SharedPreferences
 fun saveUserIdToPreferences(context: Context, userId: String) {
+
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
     sharedPreferences.edit().putString("userId", userId).apply()
 }
-
+//function to handle user login
 fun login(context: Context, inputUsername: String, inputPassword: String): String? {
     return try {
+        //open login file
         val fileInputStream: FileInputStream = context.openFileInput("login.txt")
         val lines = fileInputStream.bufferedReader().readLines()
-
+        //read all the lines and then go through each file
         for (line in lines) {
+            //split into parts
             val parts = line.split(",")
             if (parts.size >= 4) {
+                //only call the userID ,password and username to be checked
                 val userId = parts[0].trim()
                 val username = parts[2].trim()
                 val password = parts[3].trim()
@@ -92,10 +96,10 @@ fun login(context: Context, inputUsername: String, inputPassword: String): Strin
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    val context = LocalContext.current
-    var username by remember { mutableStateOf(value = "") }
-    var password by remember { mutableStateOf(value = "") }
-    var showPassword by remember { mutableStateOf(value = false) }
+    val context = LocalContext.current // Retrieve the current context
+    var username by remember { mutableStateOf(value = "") }  // State for username
+    var password by remember { mutableStateOf(value = "") }  // State for password
+    var showPassword by remember { mutableStateOf(value = false) } //state for showing password
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent)
     Box(
@@ -117,7 +121,7 @@ fun LoginScreen(navController: NavController) {
             value = username,
             maxLines = 1,
             textStyle = TextStyle(fontSize = 20.sp),
-            onValueChange = { username = it },
+            onValueChange = { username = it },  // Update username state on input
             placeholder = {
                 Text(text = "Username", color = Color.Gray, fontSize = 16.sp)
             },
@@ -132,11 +136,12 @@ fun LoginScreen(navController: NavController) {
                 .fillMaxWidth()
 
         )
-
+        //Textfield for password input
         TextField(
             value = password,
-            onValueChange = { newText -> password = newText },
+            onValueChange = { newText -> password = newText },// Update password state on input
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+            // Toggle password visibility
             modifier = Modifier
                 .padding(top = 320.dp, start = 40.dp,end=40.dp)
                 .fillMaxWidth(),
@@ -155,6 +160,7 @@ fun LoginScreen(navController: NavController) {
                     text = if (showPassword) "Hide" else "Show",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
+                    // Toggle password visibility with a clickable text
                     modifier = Modifier.clickable { showPassword = !showPassword }
                 )
             }
@@ -165,12 +171,13 @@ fun LoginScreen(navController: NavController) {
 
         Button(
             onClick = {
-                val userId = login(context,username,password)
+                val userId = login(context,username,password) // Attempt login
                 if (userId != null) {
                     Toast.makeText(context,"Login successful!",Toast.LENGTH_SHORT).show()
                     saveUserIdToPreferences(context, userId) // Save userId in SharedPreferences
-                    navController.navigate("overview_screen")
+                    navController.navigate("overview_screen") //Navigate to overview screen
                 } else {
+                    //Error message
                     Toast.makeText(context, "Invalid username or password", Toast.LENGTH_SHORT).show()
                 }
             },

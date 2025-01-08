@@ -3,10 +3,13 @@ package com.example.mobile
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -97,6 +100,17 @@ fun AnxietyScreen(navController: NavController) {
                 .verticalScroll(scrollState) // Enable vertical scrolling
                 .padding(16.dp) // Padding for the entire column
         ) {
+            androidx.compose.material.Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(top =3.dp, start = 3.dp)
+                    .clickable {
+                        navController.navigate(route = "overview_screen")
+                    },
+                tint = Color.White
+            )
             // Title for the screen
             Text(
                 text = "Anxiety Intensity Levels",
@@ -105,7 +119,7 @@ fun AnxietyScreen(navController: NavController) {
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
-            Spacer(modifier = Modifier.height(24.dp)) // Spacer for spacing
+            Spacer(modifier = Modifier.height(7.dp)) // Spacer for spacing
 
             // Buttons for each anxiety intensity level
             intensityTexts.forEachIndexed { index, text ->

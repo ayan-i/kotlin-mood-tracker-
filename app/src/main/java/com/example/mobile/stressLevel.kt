@@ -10,6 +10,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -106,6 +108,17 @@ fun StressLevelContent(
                 .verticalScroll(scrollState)
                 .fillMaxWidth()
         ) {
+            androidx.compose.material.Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                modifier = Modifier
+                    .size(45.dp)
+                    .padding(top =15.dp, start = 3.dp)
+                    .clickable {
+                        navController.navigate(route = "overview_screen")
+                    },
+                tint = Color.White
+            )
             // Title
             Text(
                 text = "Stress Check-In",
@@ -116,7 +129,7 @@ fun StressLevelContent(
                     .padding(top = 20.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Subtitle for selecting stress level
             Text(

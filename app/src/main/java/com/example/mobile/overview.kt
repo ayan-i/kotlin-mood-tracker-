@@ -1052,7 +1052,7 @@ fun BottomNavigationBar(navController: NavController) {
         // Navigation item for the stress management screen
         BottomNavigationItem(
             selected = false,
-            onClick = { navController.navigate("stress_screen") },
+            onClick = { navController.navigate("MedMainPage") },
             icon = {
                 Icon(
                     Icons.Default.Medication,

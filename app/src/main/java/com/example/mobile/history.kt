@@ -1,7 +1,10 @@
 package com.example.mobile
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -32,6 +35,7 @@ import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -260,15 +264,18 @@ private fun timeDiff(date1: String, date2: String, format: SimpleDateFormat): Lo
     return abs(time1 - time2)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Option(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setStatusBarColor(color = Color.Black)
     systemUiController.setNavigationBarColor(color = colorResource(R.color.lightpurple))
+
     // Drawer and coroutine scope setup for UI interaction
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
-    //get the userID from sharedPreferences
+
+    // Get the userID from sharedPreferences
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
 
@@ -280,6 +287,11 @@ fun Option(navController: NavController) {
     var stressHistory by remember { mutableStateOf<List<StressEntry21>>(emptyList()) }
     var anxietyHistory by remember { mutableStateOf<List<AnxietyEntry>>(emptyList()) }
     var combinedHistory by remember { mutableStateOf<List<CombinedEntry>>(emptyList()) }
+    var filteredHistory by remember { mutableStateOf<List<CombinedEntry>>(emptyList()) }
+
+    var selectedDate by remember { mutableStateOf<String?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchVisible by remember { mutableStateOf(false) }
 
     // Load data in a non-blocking way
     LaunchedEffect(context) {
@@ -289,6 +301,7 @@ fun Option(navController: NavController) {
             stressHistory = readStressHistory(context, userId)
             anxietyHistory = readAnxietyHistory(context, userId)
             combinedHistory = mergeEntries(moodHistory, stressHistory, anxietyHistory)
+            filteredHistory = combinedHistory
 
             Log.d("MoodHistory", "Loaded entries: ${moodHistory.size}")
             Log.d("StressHistory", "Loaded entries: ${stressHistory.size}")
@@ -298,7 +311,42 @@ fun Option(navController: NavController) {
             Log.e("MoodHistory", "Error: User ID is null or empty")
         }
     }
-    // Modal drawer setup for navigation menu
+
+    // Function to filter based on search query
+    fun filterHistory(query: String) {
+        filteredHistory = combinedHistory.filter { entry ->
+            entry.mood.contains(query, ignoreCase = true) ||
+                    entry.stressNotes?.contains(query, ignoreCase = true) == true ||
+                    entry.anxietyNotes?.contains(query, ignoreCase = true) == true ||
+                    entry.stressLevel?.contains(query, ignoreCase = true) == true ||
+                    entry.anxietyLevel?.contains(query, ignoreCase = true) == true
+        }
+    }
+    //get the current date
+    val currentDate = Calendar.getInstance()
+    val currentYear = currentDate.get(Calendar.YEAR)
+    val currentMonth = currentDate.get(Calendar.MONTH)
+    val currentDay = currentDate.get(Calendar.DAY_OF_MONTH)
+
+    // Date Picker setup
+    val datePickerDialog = remember {
+        // _ used for what the user puts in
+        DatePickerDialog(context, { _, year, month, dayOfMonth ->
+            // Format the selected date as a string
+            val selectedDateStr = SimpleDateFormat("EEEE MMM d", Locale.getDefault()).format(
+                Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth)
+                }.time
+            )
+            selectedDate = selectedDateStr
+
+            // Filter the combined history based on the selected date
+            filteredHistory = combinedHistory.filter { it.date.contains(selectedDateStr) }
+        }, currentYear, currentMonth, currentDay)
+        //current date in the filter comes up first
+    }
+
+    // Modal drawer setup for navigation menu-top bar
     ModalDrawer(
         drawerState = drawerState,
         drawerContent = { DrawerContent1(navController, context) }
@@ -306,10 +354,10 @@ fun Option(navController: NavController) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    // Set up a top app bar with a menu icon to open/close the drawer
-                    title = { Text("History",fontSize = 20.sp, fontWeight = FontWeight.Bold) },
+                    title = { Text("History", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
                     backgroundColor = colorResource(R.color.lightpurple),
                     navigationIcon = {
+                        //hamburger menu
                         IconButton(onClick = {
                             coroutineScope.launch {
                                 if (drawerState.isClosed) drawerState.open() else drawerState.close()
@@ -318,26 +366,99 @@ fun Option(navController: NavController) {
                             Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
                         }
                     },
+                    actions = {
+                        // This is where the search icon will be placed at the right side
+                        IconButton(onClick = { isSearchVisible = !isSearchVisible }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search Icon",
+                                tint = colorResource(R.color.darkpurple)
+                            )
+                        }
+                    },
                     modifier = Modifier.padding(top = 25.dp)
                 )
             },
-            content = { padding ->
-                // Main content layout displaying historical data or message if empty
+        content = { padding ->
+                // Main content displaying history cards or message if empty
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(color = Color.Black)
                         .padding(padding)
                 ) {
-                    // Display a message if no history is available
-                    if (combinedHistory.isEmpty()) {
+                    //Calender filter added in a seperate row
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(top=17.dp,start=100.dp)
+                            //made it clickable so the calender can show up
+                            .clickable { datePickerDialog.show() }
+                    ) {
+                        Icon(
+                            //calender icon
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = "Calendar Icon",
+                            tint = colorResource(R.color.darkpurple),
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(29.dp)
+                        )
                         Text(
-                            text = "No mood history available",
+                            text = "Select Date",
+                            color = colorResource(R.color.lightpurple),
+                            fontSize = 23.sp,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+
+                    // Display selected date if selected from calender
+                    selectedDate?.let {
+                        Text(
+                            text = "$it",
+                            color = colorResource(R.color.lightpurple),
+                            fontSize = 23.sp,
+                            modifier = Modifier.padding(start=100.dp,top=25.dp)
+
+                        )
+                    }
+
+                    // shows the textfield when the search icon is pressed
+                    if (isSearchVisible) {
+                        //styling of the textfield
+                        OutlinedTextField(
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                cursorColor = Color.White,
+                                unfocusedLabelColor = Color.Gray,
+                                focusedLabelColor = Color.White,
+                                textColor = Color.White,
+                                unfocusedBorderColor = colorResource(R.color.lightpurple),
+                                focusedBorderColor = colorResource(R.color.lightpurple)
+                            ),
+                            //call the state of the search query
+                            value = searchQuery,
+                            onValueChange = { query -> //checks the query taken into the state
+                                searchQuery = query
+                                filterHistory(query) //using onvaluechange call the filtered history
+                            },
+                            //placeholder text
+                            label = { Text("Search through the entries") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                        )
+                    }
+
+                    // Display filtered history entries
+                    if (filteredHistory.isEmpty()) {
+                        Text(
+                            text = "No entries found",
                             color = Color.White,
-                            modifier = Modifier.padding(16.dp)
+                            fontSize = 25.sp,
+                            modifier = Modifier.padding(50.dp)
                         )
                     } else {
-                        // Display a list of combined history entries using LazyColumn
+                        // Display filtered history entries
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -348,8 +469,7 @@ fun Option(navController: NavController) {
                                     bottom = 16.dp
                                 )
                         ) {
-                            items(combinedHistory) { entry ->
-                                // Display each mood history entry
+                            items(filteredHistory) { entry ->
                                 MoodHistoryCard(entry)
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
@@ -364,6 +484,8 @@ fun Option(navController: NavController) {
         )
     }
 }
+
+
 
 @Composable
 fun BottomNavigationBar1(navController: NavController) {

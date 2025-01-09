@@ -27,6 +27,8 @@ import androidx.compose.ui.res.colorResource
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -107,10 +109,27 @@ fun MedicationMainPage(navController: NavHostController) {
                     Text(
                         text = "Medication",
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 5.dp),
+                        modifier = Modifier.padding(top = 35.dp, start =5.dp),
                         color = Color.White,
                         fontSize = 30.sp
                     )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 5.dp, top = 5.dp)
+                    ) {
+                        androidx.compose.material.Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            modifier = Modifier
+                                .size(35.dp)
+                                .align(Alignment.CenterStart) // Align to the left side
+                                .clickable {
+                                    navController.navigate(route = "overview_screen")
+                                },
+                            tint = Color.White
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
@@ -132,6 +151,8 @@ fun MedicationMainPage(navController: NavHostController) {
                     .padding(paddingValues)
                     .background(Color.Black)
             ) {
+
+
                 if (medications.isNotEmpty()) {
                     medications.forEach { medication ->
                         MedicationCard(
@@ -214,7 +235,9 @@ fun MedicationCard(
                     text = if (duration > 0) "Duration: $duration days" else "Invalid Date Range",
                     fontSize = 16.sp,
                     color = Color.Gray
+
                 )
+
             }
             Row {
                 IconButton(onClick = { showTimePicker = true }) {

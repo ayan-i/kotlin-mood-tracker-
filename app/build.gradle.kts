@@ -106,6 +106,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.2")
     implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("androidx.compose.material3:material3:1.1.0-beta01")
+    implementation("com.jakewharton.threetenabp:threetenabp:1.4.4")
 
 
 

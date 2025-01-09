@@ -1,19 +1,24 @@
 package com.example.mobile
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.mobile.ui.theme.MobileTheme
 
+private const val j = "MedMainPage"
+
 // MainActivity serves as the entry point for the app
 class MainActivity : ComponentActivity() {
     // onCreate initializes the app's main components
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enables edge-to-edge display
         enableEdgeToEdge()
@@ -57,7 +62,16 @@ class MainActivity : ComponentActivity() {
                     composable("stress_screen") { StressScreen(navController) }
                     // Anxiety support screen offering resources for anxiety relief
                     composable("anxiety_screen") { AnxietyScreen(navController) }
-
+                    composable("MedMainPage") {
+                        MedicationMainPage(navController)
+                    }
+                    composable("addMedicationPage") {
+                        AddMedicationScreen(navController)
+                    }
+                    composable("medDetailPage/{medicationId}") { backStackEntry ->
+                        val medicationId = backStackEntry.arguments?.getString("medicationId")?.toIntOrNull()
+                        EditMedicationScreen(navController = navController, medicationId = medicationId)
+                    }
 
                 }
             }

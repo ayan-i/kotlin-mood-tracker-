@@ -18,6 +18,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +40,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.ui.text.style.TextAlign
@@ -166,9 +168,29 @@ fun ReminderScreen(navController: NavController) {
             .padding(16.dp)
             .padding(top = 32.dp)
             .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
+        horizontalAlignment = Alignment.CenterHorizontally)
+
+
+     {Box(
+         modifier = Modifier
+             .fillMaxWidth()
+             .padding(start = 3.dp, top = 3.dp)
+     ) {
+         androidx.compose.material.Icon(
+             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+             contentDescription = "Back",
+             modifier = Modifier
+                 .size(35.dp)
+                 .align(Alignment.CenterStart) // Align to the left side
+                 .clickable {
+                     navController.navigate(route = "overview_screen")
+                 },
+             tint = Color.White
+         )
+     }
+
+
+         Text(
             text = "SET A REMINDER.",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,

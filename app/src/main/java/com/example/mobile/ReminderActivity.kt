@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -59,6 +60,7 @@ class ReminderActivity : ComponentActivity() {
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderScreen(navController: NavController) {
@@ -72,6 +74,8 @@ fun ReminderScreen(navController: NavController) {
     var reminderMessage by remember { mutableStateOf("") }
     var vibrationEnabled by remember { mutableStateOf(false) }
     var soundEnabled by remember { mutableStateOf(false) }
+    val selectedSoundUri = remember { mutableStateOf(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION).toString()) }
+
 
     // SharedPreferences is used here to persistently store reminder settings like the message, vibration, and sound preferences.
     // This ensures user settings are retained even when the app is closed and reopened.
@@ -90,8 +94,18 @@ fun ReminderScreen(navController: NavController) {
     val timePickerDialog = TimePickerDialog(
         context,
         { _, hour: Int, minute: Int ->
-            selectedTime = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+            val now = Calendar.getInstance()
+            val selectedCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, hour)
+                set(Calendar.MINUTE, minute)
+                set(Calendar.DAY_OF_YEAR, now.get(Calendar.DAY_OF_YEAR))
+            }
 
+            if (selectedCalendar.before(now)) {
+                Toast.makeText(context, "Cannot set a reminder for a past time.", Toast.LENGTH_SHORT).show()
+            } else {
+                selectedTime = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+            }
         },
         calendar.get(Calendar.HOUR_OF_DAY),
         calendar.get(Calendar.MINUTE),
@@ -121,6 +135,7 @@ fun ReminderScreen(navController: NavController) {
             putExtra("reminderMessage", message)
             putExtra("vibrationEnabled", vibration)
             putExtra("soundEnabled", sound)
+            putExtra("soundUri", selectedSoundUri.value)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
@@ -243,6 +258,17 @@ fun ReminderScreen(navController: NavController) {
             Text("Sound", color = Color.White)
             Switch(checked = soundEnabled, onCheckedChange = { soundEnabled = it })
         }
+        // Daily option
+        var repeatDaily by remember { mutableStateOf(false) }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Repeat Daily", color = Color.White)
+            Switch(checked = repeatDaily, onCheckedChange = { repeatDaily = it })
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -289,10 +315,41 @@ fun ReminderScreen(navController: NavController) {
                     fontSize = 14.sp
                 )
             }
+            TextButton(onClick = {
+                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                val pendingIntent = createPendingIntent(context, reminderMessage, vibrationEnabled, soundEnabled)
+                alarmManager.cancel(pendingIntent)
+                Toast.makeText(context, "Reminder cancelled.", Toast.LENGTH_SHORT).show()
+            }) {
+                Text(
+                    text = "Cancel Reminder",
+                    color = Color(0xFFB18AFF),
+                    fontSize = 14.sp
+                )
+            }
+
+
 
         }
     }
 }
+fun createPendingIntent(context: Context, message: String, vibration: Boolean, sound: Boolean): PendingIntent {
+    val intent = Intent(context, ReminderReceiver::class.java).apply {
+        putExtra("reminderMessage", message)
+        putExtra("vibrationEnabled", vibration)
+        putExtra("soundEnabled", sound)
+    }
+    val requestCode = System.currentTimeMillis().toInt()
+    val pendingIntent = PendingIntent.getBroadcast(
+        context,
+        requestCode,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+}
+
 // Function to snooze a reminder for a specified number of minutes
 fun snoozeReminder(context: Context, snoozeMinutes: Int) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -345,16 +402,23 @@ class ReminderReceiver : BroadcastReceiver() {
         val reminderMessage = intent.getStringExtra("reminderMessage") ?: "Remember to check in!"
         val vibrationEnabled = intent.getBooleanExtra("vibrationEnabled", false)
         val soundEnabled = intent.getBooleanExtra("soundEnabled", false)
+        val soundUriString = intent.getStringExtra("soundUri")
         // Trigger vibration if enabled
         if (vibrationEnabled) {
             val vibrator = context.getSystemService(Vibrator::class.java)
-            vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator?.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                vibrator?.vibrate(500)
+            }
         }
         // Play a notification sound if enabled
         if (soundEnabled) {
-            val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            RingtoneManager.getRingtone(context, notificationSound)?.play()
+            val soundUri = soundUriString?.let { Uri.parse(it) }
+            val ringtone = RingtoneManager.getRingtone(context, soundUri ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            ringtone.play()
         }
+
         // Display a toast message with the reminder
         Toast.makeText(context, reminderMessage, Toast.LENGTH_LONG).show()
     }

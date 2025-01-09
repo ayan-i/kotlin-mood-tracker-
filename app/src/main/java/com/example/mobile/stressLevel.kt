@@ -208,16 +208,15 @@ fun StressLevelContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Submit button
+            // Submit button
             Button(
                 onClick = {
-                    // Ensure a stress level is selected
-                    if (currentSelectedStressLevel == "Not Stressed" || currentSelectedStressLevel.isEmpty()) {
+                    if (currentSelectedStressLevel.isEmpty()) { // Check if a stress level is selected
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar("Please select a stress level before continuing.")
                         }
                     } else {
-                        // Allow submission if a stress level is selected
-                        onSubmit(currentSelectedStressLevel, currentFeelingNotes) // Submit with optional notes
+                        onSubmit(currentSelectedStressLevel, currentFeelingNotes) // Submit stress level with optional notes
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar("Data submitted successfully!") // Show confirmation
                         }

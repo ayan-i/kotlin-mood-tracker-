@@ -33,7 +33,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 
-
+//class representing medication entry
 data class Medication(
     val userId: String = "",
     val id: String="",
@@ -45,7 +45,7 @@ data class Medication(
     val endDate: String = ""
 )
 
-// Main Activity Class
+// Main Activity for adding medication details
 class MedicationDetailActivity1 : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,23 +53,24 @@ class MedicationDetailActivity1 : ComponentActivity() {
         setContent {
             MobileTheme {
                 val navController = rememberNavController()
-                AddMedicationScreen(navController)
+                AddMedicationScreen(navController)//displays add medication screen
             }
         }
     }
 }
 
+//file name for storing medication data
 private const val fileName = "medications15.txt"
 
-
+//fucntion for add medications screen
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMedicationScreen(navController: NavHostController) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-    val userId = sharedPreferences.getString("userId", null)
-    val id by remember { mutableIntStateOf(generateNextMedicationId(context, userId)) }
+    val userId = sharedPreferences.getString("userId", null)//Retrieve userID from share preferences
+    val id by remember { mutableIntStateOf(generateNextMedicationId(context, userId)) } //Generates new medications ID
     var medicationName by remember { mutableStateOf("") }
     var dosage by remember { mutableStateOf("") }
     val duration by remember { mutableStateOf("") }
@@ -80,6 +81,7 @@ fun AddMedicationScreen(navController: NavHostController) {
     var showEndDatePicker by remember { mutableStateOf(false) }
     val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+    //UI layout for add medication screen
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -118,6 +120,7 @@ fun AddMedicationScreen(navController: NavHostController) {
         )
         Spacer(modifier = Modifier.height(32.dp))
 
+        //buttons for selecting start and end dates
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -130,6 +133,7 @@ fun AddMedicationScreen(navController: NavHostController) {
             }
         }
 
+        //date picker dialog gor start date
         if (showStartDatePicker) {
             val startDateState = rememberDatePickerState(
                 initialSelectedDateMillis = startDate.toEpochDay() * 86400000
@@ -147,14 +151,14 @@ fun AddMedicationScreen(navController: NavHostController) {
                             val today = LocalDate.now()
 
                             if (selectedDate.isBefore(today)) {
-                                startDateError = "Cannot select a past date"
+                                startDateError = "Cannot select a past date" //Validation for past date
                             } else {
                                 startDate = selectedDate
                                 startDateError = ""
                                 showStartDatePicker = false
                             }
                         } else {
-                            startDateError = "Please select a date"
+                            startDateError = "Please select a date" //error for missing date
                         }
                     }) {
                         Text("OK", color = Color.Black)
@@ -174,6 +178,7 @@ fun AddMedicationScreen(navController: NavHostController) {
         }
 
 
+        //date picker dialog for end date
         if (showEndDatePicker) {
             val endDateState = rememberDatePickerState()
             DatePickerDialog(
@@ -195,6 +200,7 @@ fun AddMedicationScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        //button to save medication entry
         Button(
             onClick = {
                 val medication = Medication(
@@ -225,8 +231,8 @@ fun AddMedicationScreen(navController: NavHostController) {
 
 // Function to Generate the Next Medication ID
 private fun generateNextMedicationId(context: Context, userId: String?): Int {
-    val medications = loadMedications1(context, userId)
-    return (medications.maxOfOrNull { it.id.toIntOrNull() ?: 0 }?.plus(1) ?: 1)
+    val medications = loadMedications1(context, userId)//load existing medications
+    return (medications.maxOfOrNull { it.id.toIntOrNull() ?: 0 }?.plus(1) ?: 1) //determines the next ID
 }
 
 

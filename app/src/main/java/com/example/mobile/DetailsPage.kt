@@ -28,17 +28,22 @@ import android.widget.Toast
 import kotlinx.coroutines.launch
 import java.io.File
 
+
+//Activity for editing medication entries
 class MedPageActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            EditMedicationScreen()
+            EditMedicationScreen()//launch edit medications screen
         }
     }
 }
+
+//file for storing medication data
 private const val fileName = "medications15.txt"
 
 
+//function for editing a medication
 @Composable
 fun EditMedicationScreen(navController: NavHostController? = null, medicationId: Int? = null) {
     val context = LocalContext.current
@@ -47,6 +52,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
     val userId = sharedPreferences.getString("userId", null)
     var medications by remember { mutableStateOf(loadMedications1(context, userId)) }
 
+    //handles situation when medicationID is not provided
     if (medicationId == null) {
         LaunchedEffect(Unit) {
             Toast.makeText(context, "Invalid medication ID", Toast.LENGTH_SHORT).show()
@@ -55,6 +61,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
         return
     }
 
+    //find the medication with the provided ID
     val currentMedication = medications.find { it.id == medicationId.toString() }
     if (currentMedication == null) {
         LaunchedEffect(Unit) {
@@ -64,10 +71,12 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
         return
     }
 
+    //state variables for editable fields
     var name by remember { mutableStateOf(TextFieldValue(currentMedication.name)) }
     var dosage by remember { mutableStateOf(TextFieldValue(currentMedication.dosage)) }
     var frequency by remember { mutableStateOf(TextFieldValue(currentMedication.frequency)) }
 
+    //error handling state variables
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
@@ -86,7 +95,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
             textAlign = TextAlign.Center,
             color = Color.White
         )
-
+    //  error message display
         if (showError) {
             Text(
                 text = errorMessage,
@@ -97,6 +106,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        //editable text fields for medication details
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -136,6 +146,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        //button to save changes
         Button(onClick = {
             if (name.text.isBlank() || dosage.text.isBlank() || frequency.text.isBlank()) {
                 showError = true
@@ -150,7 +161,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
                         dosage = dosage.text,
                         frequency = frequency.text
                     )
-                    saveMedication(context, updatedMedication)
+                    saveMedication(context, updatedMedication)//save upfated mediaction
                     scope.launch(Dispatchers.Main) {
                         Toast.makeText(context, "Changes saved successfully", Toast.LENGTH_SHORT).show()
                         navController?.navigateUp()
@@ -169,6 +180,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        //button to delete medication
         Button(
             onClick = {
                 scope.launch(Dispatchers.IO) {  // Using IO dispatcher for file operations
@@ -196,6 +208,7 @@ fun EditMedicationScreen(navController: NavHostController? = null, medicationId:
     }
 }
 
+//function to save updated medication details
 fun saveMedication(context: Context, medication: Medication) {
     try {
         val file = File(context.filesDir, fileName)
@@ -212,17 +225,18 @@ fun saveMedication(context: Context, medication: Medication) {
                 throw IllegalStateException("Invalid line format in medication file: $line")
             }
 
+            //replace the line matching the medication ID with updated details
             if (parts[0]== medication.userId && parts[2] == medication.name) {
                 "${medication.userId},${medication.id},${medication.name},${medication.dosage},${medication.frequency},${medication.duration},${medication.startDate},${medication.endDate}"
             } else line
         }
-        file.writeText(updatedLines.joinToString("\n"))
+        file.writeText(updatedLines.joinToString("\n"))//writes updated lines to file
     } catch (e: Exception) {
         throw Exception("Failed to save medication: ${e.message}")
     }
 }
 
-
+//function delete medications
 fun deleteMedication(context: Context, medication: Medication) {
     try {
         val file = File(context.filesDir, fileName)
@@ -236,7 +250,7 @@ fun deleteMedication(context: Context, medication: Medication) {
             // Compare medication.id (String) with parts[0] (String)
             parts[0]== medication.userId && parts[1] == medication.id
         }
-        file.writeText(updatedLines.joinToString("\n"))
+        file.writeText(updatedLines.joinToString("\n"))//writes updated lines to file
     } catch (e: Exception) {
         throw Exception("Failed to delete medication: ${e.message}")
     }

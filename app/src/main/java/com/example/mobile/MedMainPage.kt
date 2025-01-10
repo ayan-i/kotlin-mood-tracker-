@@ -40,7 +40,7 @@ import java.io.File
 import java.io.FileReader
 import java.util.Calendar
 
-// MainActivity.kt
+// MainActivity class for medication tracker
 class MedTracker : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,8 +54,10 @@ class MedTracker : ComponentActivity() {
     }
 }
 
+//internal file for storing medications
 private const val fileName = "medications15.txt"
 
+//functions to load medications data from a file
 fun loadMedications1(context: Context, userID: String?): List<Medication> {
     val file = File(context.filesDir, fileName)
     val medicationList = mutableListOf<Medication>()
@@ -65,6 +67,7 @@ fun loadMedications1(context: Context, userID: String?): List<Medication> {
         val lines = reader.readLines()
         reader.close()
 
+        //processes each lone in the file and filter by userID
         lines.forEach { line ->
             val parts = line.split(",")
             if (parts.size == 8 && parts[0] == userID) {  // Filter by userID
@@ -85,6 +88,7 @@ fun loadMedications1(context: Context, userID: String?): List<Medication> {
     return medicationList
 }
 
+//function to display the main medication page
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicationMainPage(navController: NavHostController) {
@@ -95,9 +99,9 @@ fun MedicationMainPage(navController: NavHostController) {
     val medications by remember {
         mutableStateOf(
             if (userId != null) {
-                loadMedications1(context, userId)
+                loadMedications1(context, userId) // Loads medications id userID exists
             } else {
-                emptyList()
+                emptyList() //shows an empty list if no User ID
             }
         )
     }
@@ -134,6 +138,7 @@ fun MedicationMainPage(navController: NavHostController) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
         },
+        //floating action button to navigate to the add medications page
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -145,6 +150,7 @@ fun MedicationMainPage(navController: NavHostController) {
             }
         },
         content = { paddingValues ->
+            //main content showing medications or a message if none exist
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -176,6 +182,7 @@ fun MedicationMainPage(navController: NavHostController) {
     )
 }
 
+//Function to create a card for each medications
 @Composable
 fun MedicationCard(
     medicationId: String,
@@ -189,6 +196,7 @@ fun MedicationCard(
     var selectedTime by remember { mutableStateOf("") }
     val context = LocalContext.current
 
+    //Calculate the duration of the medication in days
     val duration = try {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val start = LocalDate.parse(startDate, formatter)
@@ -203,10 +211,11 @@ fun MedicationCard(
     }
 
     if (showTimePicker) {
+        //shows time picker dialog
         ShowTimePickerDialog(
             onTimeSelected = { time, isDaily ->
                 selectedTime = time
-                scheduleNotification(context, time, name, isDaily)
+                scheduleNotification(context, time, name, isDaily) //schedules notification
                 showTimePicker = false
             },
             onDismiss = {
@@ -221,6 +230,7 @@ fun MedicationCard(
             .fillMaxWidth()
             .padding(8.dp)
     ) {
+        //Display medication details
         Row(
             modifier = Modifier
                 .padding(16.dp)
@@ -240,6 +250,7 @@ fun MedicationCard(
 
             }
             Row {
+                //buttons for setting reminders or editing medication
                 IconButton(onClick = { showTimePicker = true }) {
                     Icon(
                         Icons.Default.Notifications,
@@ -259,6 +270,7 @@ fun MedicationCard(
     }
 }
 
+//Dialog to pick reminder time
 @Composable
 fun ShowTimePickerDialog(onTimeSelected: (String, Boolean) -> Unit, onDismiss: () -> Unit) {
     var isDaily by remember { mutableStateOf(false) }
@@ -273,6 +285,7 @@ fun ShowTimePickerDialog(onTimeSelected: (String, Boolean) -> Unit, onDismiss: (
             Text("Set Reminder Time")
         },
         text = {
+            //Dialog content with time picker
             Column {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -310,6 +323,7 @@ fun ShowTimePickerDialog(onTimeSelected: (String, Boolean) -> Unit, onDismiss: (
     )
 }
 
+//Creates notification channel
 private fun createNotificationChannel(context: Context) {
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
         val name = "Medication Reminder"
@@ -324,6 +338,7 @@ private fun createNotificationChannel(context: Context) {
     }
 }
 
+//function to schedule notifications for medications reminder
 @SuppressLint("ScheduleExactAlarm")
 fun scheduleNotification(context: Context, selectedTime: String, medicationName: String, isDaily: Boolean) {
     val calendar = Calendar.getInstance().apply {
@@ -332,6 +347,7 @@ fun scheduleNotification(context: Context, selectedTime: String, medicationName:
         set(Calendar.MINUTE, timeParts[1].toInt())
         set(Calendar.SECOND, 0)
 
+        //if the time is in the past, schedule for the next day
         if (timeInMillis < System.currentTimeMillis()) {
             add(Calendar.DAY_OF_YEAR, 1)
         }
@@ -352,6 +368,7 @@ fun scheduleNotification(context: Context, selectedTime: String, medicationName:
 
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
 
+    //Schedule the notification as repeating or one-time
     if (isDaily) {
         alarmManager.setRepeating(
             android.app.AlarmManager.RTC_WAKEUP,

@@ -357,6 +357,7 @@ fun MoodGraph() {
     }
 }
 
+
 @Composable
 fun overview(navController: NavController) {
     // Control system UI appearance (status bar and navigation bar)
@@ -382,22 +383,18 @@ fun overview(navController: NavController) {
         if (!userId.isNullOrEmpty()) {
             anxietyData.value = readAnxietyData1(context, userId)
             stressData.clear()
-            stressData.addAll(readStressDataForPieChart(context, userId).toList()) // Explicit conversion
+            stressData.addAll(readStressDataForPieChart(context, userId))
             Log.d("Overview", "Loaded data for user: $userId")
         } else {
             Log.e("Overview", "Error: User ID is null or empty")
         }
     }
 
+    // Main scaffold layout for the top bar, content, and bottom navigation
+    Scaffold(
+        topBar = {
+            val currentRoute = navController.currentBackStackEntry?.destination?.route
 
-    // Modal drawer component to hold the navigation drawer
-    ModalDrawer(
-        drawerState = drawerState,
-        drawerContent = { DrawerContent(navController, context) }
-    ) {
-        // Main scaffold layout for top bar, content, and bottom navigation
-        Scaffold(
-            topBar = {
                 TopAppBar(
                     title = { Text("Overview", fontSize = 20.sp, fontWeight = FontWeight.Bold) },
                     backgroundColor = colorResource(R.color.lightpurple),
@@ -413,19 +410,19 @@ fun overview(navController: NavController) {
                     modifier = Modifier.padding(top = 25.dp)
                 )
             },
-            content = { padding ->
-                val scrollState = rememberScrollState()
-
-                // Main column layout for content sections
+        content = { padding ->
+            // Modal drawer placed here, ensuring it doesn't cover bottom navigation
+            ModalDrawer(
+                drawerState = drawerState,
+                drawerContent = { DrawerContent(navController, context) }
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(scrollState)
-                        .background(color = Color.Black)
                         .padding(padding)
-
+                        .verticalScroll(rememberScrollState())
+                        .background(color = Color.Black)
                 ) {
-                    // Mood Graph Section
                     MoodGraph()
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -443,7 +440,7 @@ fun overview(navController: NavController) {
                             text = "No stress data available",
                             color = Color.White,
                             modifier = Modifier.padding(16.dp),
-                            fontSize=17.sp
+                            fontSize = 17.sp
                         )
                     } else {
                         DrawStressPieChart(data = stressData)
@@ -464,21 +461,21 @@ fun overview(navController: NavController) {
                             text = "No anxiety data available",
                             color = Color.White,
                             modifier = Modifier.padding(16.dp),
-                            fontSize=17.sp
+                            fontSize = 17.sp
                         )
                     } else {
                         AnxietyLineChart1(data = anxietyData.value)
                     }
                     Spacer(modifier = Modifier.padding(15.dp))
                 }
-            },
-            // Bottom navigation bar component
-            bottomBar = {
-                BottomNavigationBar(navController)
             }
-        )
-    }
+        },
+        bottomBar = {
+            BottomNavigationBar(navController)
+        }
+    )
 }
+
 
 
 
@@ -1080,32 +1077,33 @@ fun BottomNavigationBar(navController: NavController) {
 
 @Composable
 fun DrawerContent(navController: NavController, context: Context) {
-    // Column layout for the entire drawer content
     Column(
         modifier = Modifier
-            .fillMaxSize() // Occupies the full available space
-            .background(color = colorResource(R.color.lightpurple)) // Background color for the drawer
-            .padding(16.dp) // Padding around the content
+            .fillMaxSize()
+            .background(color = colorResource(R.color.lightpurple))
+            .padding(16.dp)
     ) {
-        // Header section of the drawer
-        Text(
-            text = "Navigation Menu",
-            fontSize = 20.sp, // Font size for the header text
-            fontWeight = FontWeight.Bold, // Bold font weight for emphasis
-            color = Color.Black, // Text color
-            modifier = Modifier.padding(top= 20.dp,bottom = 10.dp) // Padding for spacing
-        )
-        // Divider to separate the header from the navigation items
+        Text("Navigation Menu", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         Divider(color = Color.Black, thickness = 1.dp)
 
-        // Navigation items with respective icons and click actions
-//        DrawerItem("overview", Icons.Filled.Home) { navController.navigate("overview_screen") }
-//        DrawerItem("Advice", Icons.Filled.Info) { navController.navigate("advice_screen") }
-//        DrawerItem("Mood", Icons.Filled.Mood) { navController.navigate("mood_screen") }
-        DrawerItem("Stress Level", Icons.Filled.BatteryFull) { navController.navigate("stress_screen") }
-        DrawerItem("Anxiety Level", Icons.Filled.ReportProblem) { navController.navigate("anxiety_screen") }
-        DrawerItem("Reminder Activity", Icons.Filled.EventNote) { navController.navigate("reminder_screen") }
-        DrawerItem("Logout", Icons.Default.Logout) { logout(navController, context) }
+        // ✅ Navigation happens only when clicked from the drawer
+        DrawerItem("Stress Level", Icons.Filled.BatteryFull) {
+            navController.navigate("stress_screen") {
+                popUpTo("stress_screen") { inclusive = true } // Prevents backstack duplicates
+            }
+        }
+
+        DrawerItem("Anxiety Level", Icons.Filled.ReportProblem) {
+            navController.navigate("anxiety_screen")
+        }
+
+        DrawerItem("Reminder Activity", Icons.Filled.EventNote) {
+            navController.navigate("reminder_screen")
+        }
+
+        DrawerItem("Logout", Icons.Default.Logout) {
+            logout(navController, context)
+        }
     }
 }
 
@@ -1137,6 +1135,8 @@ fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
         )
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

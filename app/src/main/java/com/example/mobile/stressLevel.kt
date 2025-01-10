@@ -221,7 +221,7 @@ fun StressLevelContent(
                             snackbarHostState.showSnackbar("Data submitted successfully!") // Show confirmation
                         }
                         focusManager.clearFocus() // Clear focus after submission
-                        navController.navigateUp() // Navigate back
+
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

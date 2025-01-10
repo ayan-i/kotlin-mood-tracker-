@@ -187,7 +187,7 @@ fun AnxietyScreen(navController: NavController) {
                             snackbarHostState.showSnackbar("Data submitted successfully!") // Show confirmation
                         }
                         focusManager.clearFocus() // Clear keyboard focus
-                        navController.navigateUp() // Navigate back after submission
+
                     }
                 },
                 modifier = Modifier.fillMaxWidth() // Make button fill the width

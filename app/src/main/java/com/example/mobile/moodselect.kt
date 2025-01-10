@@ -173,7 +173,6 @@ fun Mood(navController: NavController) {
                     }
                     //would go back to the overview page once recorded and display success message
                     Toast.makeText(context, "Data saved successfully..", Toast.LENGTH_SHORT).show()
-                    navController.navigateUp()
                 } else {
                     // Show a warning message if no mood is chosen does not let you continue
                     Toast.makeText(context, "Please select a mood first.", Toast.LENGTH_SHORT).show()

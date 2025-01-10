@@ -171,7 +171,10 @@ fun ReminderScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally)
 
 
-     {Box(
+
+     {
+
+        Box(
          modifier = Modifier
              .fillMaxWidth()
              .padding(start = 3.dp, top = 3.dp)

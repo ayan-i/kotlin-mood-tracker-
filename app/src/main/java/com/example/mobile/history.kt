@@ -541,7 +541,7 @@ fun BottomNavigationBar1(navController: NavController) {
         BottomNavigationItem(
             //add stress item
             selected = false,
-            onClick = { navController.navigate("stress_screen") },
+            onClick = { navController.navigate("MedMainPage") },
             icon = {
                 Icon(
                     Icons.Default.Medication,
@@ -590,9 +590,9 @@ fun DrawerContent1(navController: NavController, context: Context) {
         Divider(color = Color.Black, thickness = 1.dp)
 
         // Drawer items for different screens
-        DrawerItem1("Overview", Icons.Default.Dashboard) { navController.navigate("overview_screen") }
-        DrawerItem1("Advice", Icons.Default.Phone) { navController.navigate("advice_screen") }
-        DrawerItem1("Mood", Icons.Default.AddCircle) { navController.navigate("mood_screen") }
+//        DrawerItem1("Overview", Icons.Default.Dashboard) { navController.navigate("overview_screen") }
+//        DrawerItem1("Advice", Icons.Default.Phone) { navController.navigate("advice_screen") }
+//        DrawerItem1("Mood", Icons.Default.AddCircle) { navController.navigate("mood_screen") }
         DrawerItem1("Stress Level", Icons.Default.BatteryAlert) { navController.navigate("stress_screen") }
         DrawerItem1("Anxiety Level", Icons.Default.Warning) { navController.navigate("anxiety_screen") }
         DrawerItem1("Reminder Activity", Icons.AutoMirrored.Filled.EventNote) { navController.navigate("reminder_screen") }

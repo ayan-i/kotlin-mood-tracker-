@@ -179,6 +179,7 @@ fun HelpLine(navController: NavController) {
                     color = Color.Blue,
                     modifier = Modifier.clickable {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.uwe.ac.uk/life/health-and-wellbeing/get-wellbeing-support"))
+
                         context.startActivity(intent)
                     }
                 )

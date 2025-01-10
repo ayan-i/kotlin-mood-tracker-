@@ -1099,9 +1099,9 @@ fun DrawerContent(navController: NavController, context: Context) {
         Divider(color = Color.Black, thickness = 1.dp)
 
         // Navigation items with respective icons and click actions
-        DrawerItem("overview", Icons.Filled.Home) { navController.navigate("overview_screen") }
-        DrawerItem("Advice", Icons.Filled.Info) { navController.navigate("advice_screen") }
-        DrawerItem("Mood", Icons.Filled.Mood) { navController.navigate("mood_screen") }
+//        DrawerItem("overview", Icons.Filled.Home) { navController.navigate("overview_screen") }
+//        DrawerItem("Advice", Icons.Filled.Info) { navController.navigate("advice_screen") }
+//        DrawerItem("Mood", Icons.Filled.Mood) { navController.navigate("mood_screen") }
         DrawerItem("Stress Level", Icons.Filled.BatteryFull) { navController.navigate("stress_screen") }
         DrawerItem("Anxiety Level", Icons.Filled.ReportProblem) { navController.navigate("anxiety_screen") }
         DrawerItem("Reminder Activity", Icons.Filled.EventNote) { navController.navigate("reminder_screen") }

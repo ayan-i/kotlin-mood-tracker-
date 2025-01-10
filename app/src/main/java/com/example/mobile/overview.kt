@@ -49,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.PI
@@ -853,7 +854,6 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
     val total = data.sumOf { it.second.toDouble() }.toFloat()
     // Define a list of colors for the pie chart segments
     val colors = listOf(
-
         Color(0xFF9575CD), // Purple
         Color(0xFF4DD0E1), // Cyan
         Color(0xFFFFD54F), // Amber
@@ -868,9 +868,9 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
     // Canvas to draw the pie chart
     Canvas(
         modifier = Modifier
-            .width(350.dp)
-            .height(300.dp)
-            .padding(start=50.dp)
+            .width(450.dp)
+            .height(400.dp)
+            .padding(start=20.dp)
     ) {
         var startAngle = 0f
 
@@ -891,23 +891,34 @@ fun DrawStressPieChart(data: List<Pair<String, Int>>) {
 
         // Reset start angle for label placement
         startAngle = 0f
-        // Loop through the data again to draw labels on the slices
+        // Loop through the data again to draw labels outside the slices
         data.forEachIndexed { index, entry ->
             val sweepAngle = (entry.second / total) * 360f
             val angle = startAngle + sweepAngle / 2
             val radius = size.minDimension / 3
-            // Calculate the position for the label
-            val x = center.x + radius * cos(angle * PI / 180).toFloat()
-            val y = center.y + radius * sin(angle * PI / 180).toFloat()
+            val lineRadius = radius + 40f
 
-            // Draw the label at the calculated position
+            // Calculate the position for the label outside the slice
+            val xLine = center.x + lineRadius * cos(angle * PI / 180).toFloat()
+            val yLine = center.y + lineRadius * sin(angle * PI / 180).toFloat()
+
+            // Draw a line connecting the slice to the label
+            drawLine(
+                color = Color.Black,
+                start = Offset(center.x + radius * cos(angle * PI / 180).toFloat(),
+                    center.y + radius * sin(angle * PI / 180).toFloat()),
+                end = Offset(xLine, yLine),
+                strokeWidth = 3f
+            )
+
+            // Draw the label outside the pie chart
             drawContext.canvas.nativeCanvas.drawText(
-                entry.first,
-                x,
-                y,
+                "${entry.first} ${(entry.second / total * 100).toInt()}%",
+                xLine,
+                yLine,
                 android.graphics.Paint().apply {
                     color = android.graphics.Color.BLACK
-                    textSize = 40f
+                    textSize = 35f
                     typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
                     textAlign = android.graphics.Paint.Align.CENTER
                 }

@@ -15,51 +15,51 @@ Built with Kotlin in Android Studio, the app promotes self-awareness and mental 
 
 **Tech Stack**
 
-Language: Kotlin
+* Language: Kotlin
 
-IDE: Android Studio
+* IDE: Android Studio
 
-Database: Room (local persistence)
+* Database: Room (local persistence)
 
-UI: RecyclerView, Material Design components
+* UI: RecyclerView, Material Design components
 
-Version Control: Git & GitHub
+* Version Control: Git & GitHub
 
 **My Contributions**
 
 In this group project, I was responsible for both core functionality and team collaboration:
 
-Database & Data Management
+* Database & Data Management
 
-Designed and implemented the Room database schema to store mood logs and notes.
+* Designed and implemented the Room database schema to store mood logs and notes.
 
-Wrote DAO queries for inserting, retrieving, and updating mood entries.
+* Wrote DAO queries for inserting, retrieving, and updating mood entries.
 
-User Interface Development
+* User Interface Development
 
-Built the mood selection screen with emoji-based input.
+* Built the mood selection screen with emoji-based input.
 
-Created the journaling interface for users to add text entries.
+* Created the journaling interface for users to add text entries.
 
-Implemented a RecyclerView with custom adapters to display past moods in a timeline.
+* Implemented a RecyclerView with custom adapters to display past moods in a timeline.
 
-App Logic & Features
+* App Logic & Features
 
-Integrated daily reminder notifications using Android’s AlarmManager/WorkManager.
+* Integrated daily reminder notifications using Android’s AlarmManager/WorkManager.
 
-Ensured smooth navigation between mood logging, journaling, and history screens.
+* Ensured smooth navigation between mood logging, journaling, and history screens.
 
-Version Control & Collaboration
+* Version Control & Collaboration
 
-Managed GitHub workflows, including branching, pull requests, and merge conflict resolution.
+* Managed GitHub workflows, including branching, pull requests, and merge conflict resolution.
 
-Helped enforce Agile practices with task breakdowns and sprint-style check-ins.
+* Helped enforce Agile practices with task breakdowns and sprint-style check-ins.
 
-Testing & Debugging
+* Testing & Debugging
 
-Conducted manual testing on emulators and real devices.
+* Conducted manual testing on emulators and real devices.
 
-Debugged UI and database issues to ensure stable app performance.
+* Debugged UI and database issues to ensure stable app performance.
 
 **Getting Started**
 
@@ -69,11 +69,11 @@ Prerequisites
 
 * Android device or emulator
 
-  Installation
+  **Installation**
 
 1.  Clone this repository:
 
-git clone https://github.com/ayan-i/kotlin-mood-tracker.git
+* git clone https://github.com/ayan-i/kotlin-mood-tracker.git
 
 
 2. Open the project in Android Studio.
@@ -81,9 +81,9 @@ git clone https://github.com/ayan-i/kotlin-mood-tracker.git
 
 3. Sync Gradle
 
-Android Studio will auto-detect Gradle files.
+* Android Studio will auto-detect Gradle files.
 
-If prompted, click “Sync Now” to download dependencies.
+* If prompted, click “Sync Now” to download dependencies.
 
 4. Run on an Emulator
 
@@ -103,9 +103,9 @@ If prompted, click “Sync Now” to download dependencies.
 
 **Future Improvements**
 
-Add cloud sync using Firebase.
+* Add cloud sync using Firebase.
 
-Implement charts for visual mood trends.
+* Implement charts for visual mood trends.
 
 Dark mode support.
 
